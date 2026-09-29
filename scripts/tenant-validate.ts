@@ -38,12 +38,20 @@ export function audit(config: StudioSettings, photos: Set<string>): Issue[] {
   const issues: Issue[] = [];
   const add = (level: Level, text: string) => issues.push({level, text});
 
-  if (!photos.has(config.heroPhoto)) {
+  // Фото, загруженные владельцем из кабинета, лежат в хранилище (https://…),
+  // а не в photos/ — их файлом не проверяем.
+  const local = (p: string) => !/^https?:\/\//.test(p);
+
+  if (local(config.heroPhoto) && !photos.has(config.heroPhoto)) {
     add('error', `Главное фото ${config.heroPhoto} не найдено в photos/ — первый экран будет пустым`);
   }
 
   for (const item of config.gallery) {
-    if (!photos.has(item.photo)) add('error', `Фото галереи ${item.photo} не найдено в photos/`);
+    if (local(item.photo) && !photos.has(item.photo)) add('error', `Фото галереи ${item.photo} не найдено в photos/`);
+  }
+
+  if (config.logo && local(config.logo) && !photos.has(config.logo)) {
+    add('error', `Логотип ${config.logo} не найден в photos/`);
   }
 
   const activeServices = config.services.filter((s) => s.isActive);

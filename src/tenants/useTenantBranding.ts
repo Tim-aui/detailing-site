@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import {seedFor} from '../lib/studio.ts';
-import {useTenantSlug} from './TenantContext.tsx';
+import {useSlugParam, useTenantSlug} from './TenantContext.tsx';
 
 /**
  * Оформление приложения под конкретную студию.
@@ -10,7 +10,12 @@ import {useTenantSlug} from './TenantContext.tsx';
  * динамически: один бандл обслуживает все адреса /s/<slug>/.
  */
 export function useTenantBranding() {
-  const slug = useTenantSlug();
+  // Хук вызывается в каркасе ДО TenantProvider, поэтому slug берём из
+  // адреса. Раньше здесь был только контекст — он там ещё пуст, и манифест
+  // со значком студии не ставился вовсе: установка на телефон не работала.
+  const fromContext = useTenantSlug();
+  const fromRoute = useSlugParam();
+  const slug = fromContext || fromRoute;
   const seed = seedFor(slug);
   const accent = seed?.config.pwa.themeColor ?? '#4690FF';
 

@@ -35,9 +35,14 @@ export function buildIcs({uid, title, description, location, url, startUtc, endU
     location ? `LOCATION:${esc(location)}` : null,
     url ? `URL:${esc(url)}` : null,
     'STATUS:CONFIRMED',
+    // Напоминание за день (как обещает экран записи) и ещё одно за 2 часа.
     'BEGIN:VALARM',
-    // Напомним за 3 часа — за это время обычно уже можно выехать.
-    'TRIGGER:-PT3H',
+    'TRIGGER:-P1D',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:${esc(`Завтра: ${title}`)}`,
+    'END:VALARM',
+    'BEGIN:VALARM',
+    'TRIGGER:-PT2H',
     'ACTION:DISPLAY',
     `DESCRIPTION:${esc(title)}`,
     'END:VALARM',

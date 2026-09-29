@@ -15,6 +15,7 @@ import {allSeeds} from './lib/studio.ts';
 const ServicesPage = lazy(() => import('./routes/ServicesPage.tsx').then((m) => ({default: m.ServicesPage})));
 const BookingPage = lazy(() => import('./routes/BookingPage.tsx').then((m) => ({default: m.BookingPage})));
 const MyBookingPage = lazy(() => import('./routes/MyBookingPage.tsx').then((m) => ({default: m.MyBookingPage})));
+const AdminApp = lazy(() => import('./routes/admin/AdminApp.tsx'));
 const AssistantPage = lazy(() => import('./routes/AssistantPage.tsx').then((m) => ({default: m.AssistantPage})));
 
 /**
@@ -28,6 +29,14 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<RootRedirect />} />
+      <Route
+        path="/s/:slug/admin/*"
+        element={
+          <Suspense fallback={<LoadingIndicator label="Открываем кабинет" />}>
+            <AdminApp />
+          </Suspense>
+        }
+      />
       <Route path="/s/:slug" element={<TenantLayout />}>
         <Route index element={<HomePage />} />
         <Route

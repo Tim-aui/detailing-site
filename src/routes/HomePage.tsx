@@ -13,6 +13,7 @@ import {useMemo} from 'react';
 import {freeSlots} from '../lib/schedule.ts';
 import {useBusy} from '../lib/studio.ts';
 import type {BusyBlock} from '../lib/schedule.ts';
+import {photoUrl} from '../tenants/schema.ts';
 
 const NO_BUSY: BusyBlock[] = [];
 
@@ -50,7 +51,7 @@ export function HomePage() {
   }, [cfg, services, busy]);
 
   if (!cfg) return null;
-  const heroUrl = `/tenants/${slug}/photos/${cfg.heroPhoto}`;
+  const heroUrl = photoUrl(slug, cfg.heroPhoto);
 
   return (
     <>
@@ -61,6 +62,7 @@ export function HomePage() {
 
         <div className="shell hero__inner">
           <VStack gap={3}>
+            {cfg.logo ? <img className="hero__logo" src={photoUrl(slug, cfg.logo)} alt={`Логотип ${cfg.name}`} /> : null}
             {/* Обёртка не даёт бейджу растянуться на всю ширину VStack. */}
             <div style={{alignSelf: 'flex-start'}}>
               {isOpenNow(cfg) ? (
@@ -79,7 +81,7 @@ export function HomePage() {
             ) : null}
           </VStack>
 
-          <Link to={`/s/${slug}/booking`} className="hero__cta tap">
+          <Link to={`/s/${slug}/booking`} className="hero__cta glass tap">
             <span className="hero__cta-text">
               <span className="hero__cta-label">Записаться онлайн</span>
               <span className="hero__cta-hint">
@@ -242,7 +244,7 @@ export function HomePage() {
                   {gallery.map((item) => (
                     <figure key={item.id} style={{margin: 0}}>
                       <img
-                        src={`/tenants/${slug}/photos/${item.photo}`}
+                        src={photoUrl(slug, item.photo)}
                         alt={item.caption || `Работа студии ${item.order}`}
                         loading="lazy"
                         decoding="async"

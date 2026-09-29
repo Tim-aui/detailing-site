@@ -35,18 +35,17 @@ export function useStudio(slug: string): UseQueryResult<StudioSettings, Error> {
       if (!seed) throw new Error(`Студия «${slug}» не найдена`);
       if (!isSupabaseConfigured) return seed.config;
 
-      const {data, error} = await supabase()
-        .from('tenant_settings')
-        .select('patch')
-        .eq('slug', slug)
-        .maybeSingle();
+      // Раньше здесь был select по несуществующей колонке `slug` (в таблице
+      // она называется tenant_slug) — запрос всегда падал, и правки
+      // владельца на сайте не появлялись никогда.
+      const {data, error} = await supabase().rpc('studio_patch', {p_tenant_slug: slug});
       if (error) {
         // Недоступная база не должна ломать просмотр студии:
         // показываем то, что гарантированно есть, — файл.
         console.warn('Не удалось прочитать настройки из базы, показываю файл студии:', error.message);
         return seed.config;
       }
-      return mergeTenantConfig(seed.config, (data?.patch ?? null) as never);
+      return mergeTenantConfig(seed.config, (data ?? null) as never);
     },
   });
 }
@@ -58,22 +57,40 @@ export function useBusy(slug: string, horizonDays: number): UseQueryResult<BusyB
     staleTime: 20_000,
     refetchOnWindowFocus: true,
     queryFn: async () => {
-      if (!isSupabaseConfigured) return [];
-      const {data, error} = await supabase()
-        .from('bookings')
-        .select('id, starts_at, ends_at, status')
-        .eq('tenant_slug', slug)
-        .in('status', ['pending', 'confirmed', 'in_progress', 'done'])
-        .order('starts_at', {ascending: true});
+      if (!isSupabaseConfigured) return localBusy(slug);
+      // Таблица bookings закрыта RLS, прямой select из браузера всегда
+      // возвращал пусто — занятое время не отмечалось. studio_busy отдаёт
+      // только интервалы и бокс, без имён и телефонов.
+      const {data, error} = await supabase().rpc('studio_busy', {p_tenant_slug: slug});
       if (error) throw new Error(error.message);
-      return (data ?? []).map((b) => ({
-        id: b.id as string,
-        startsAt: b.starts_at as string,
-        endsAt: b.ends_at as string,
-        status: b.status as BusyBlock['status'],
-      }));
+      return ((data ?? []) as Array<{box_id: string; starts_at: string; ends_at: string; status: BusyBlock['status']}>).map(
+        (b, i) => ({
+          id: `${b.box_id}:${i}`,
+          boxId: b.box_id,
+          startsAt: b.starts_at,
+          endsAt: b.ends_at,
+          status: b.status,
+        }),
+      );
     },
   });
+}
+
+/** Демо без базы: занятость из записей, сделанных в этом браузере. */
+function localBusy(slug: string): BusyBlock[] {
+  try {
+    const rows = JSON.parse(localStorage.getItem(`studio:bookings:${slug}`) ?? '[]') as Array<{
+      id: string;
+      starts_at: string;
+      ends_at: string;
+      status: BusyBlock['status'];
+    }>;
+    return rows
+      .filter((r) => r.status !== 'cancelled')
+      .map((r) => ({id: r.id, startsAt: r.starts_at, endsAt: r.ends_at, status: r.status}));
+  } catch {
+    return [];
+  }
 }
 
 /** Настройки текущей студии из контекста роута. */

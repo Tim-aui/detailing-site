@@ -11,7 +11,7 @@ import {useCancelBooking, useMyBookings} from '../lib/bookings.ts';
 import {money, studioDate, studioDateTime} from '../lib/format.ts';
 import {duration} from '../lib/format.ts';
 import {IconByName} from '../components/icons.tsx';
-import {AddToCalendarButton} from '../components/AddToCalendarButton.tsx';
+import {ReminderOffer} from '../components/ReminderOffer.tsx';
 import {LoadingIndicator} from '../components/LoadingIndicator.tsx';
 import type {BookingRow} from '../lib/types.ts';
 
@@ -77,6 +77,9 @@ export function MyBookingPage() {
                     <BookingCard
                       key={b.id}
                       booking={b}
+                      slug={slug}
+                      studioName={settings?.name ?? 'Студия'}
+                      address={settings?.address.full}
                       tz={settings?.timezone ?? 'Europe/Moscow'}
                       isConfirming={confirming === b.code}
                       onCancel={() => setConfirming(b.code)}
@@ -105,7 +108,13 @@ export function MyBookingPage() {
                     История
                   </Text>
                   {past.map((b) => (
-                    <BookingCard key={b.id} booking={b} tz={settings?.timezone ?? 'Europe/Moscow'} />
+                    <BookingCard
+                      key={b.id}
+                      booking={b}
+                      slug={slug}
+                      studioName={settings?.name ?? 'Студия'}
+                      tz={settings?.timezone ?? 'Europe/Moscow'}
+                    />
                   ))}
                 </VStack>
               ) : null}
@@ -119,6 +128,9 @@ export function MyBookingPage() {
 
 function BookingCard({
   booking,
+  slug,
+  studioName,
+  address,
   tz,
   isConfirming,
   onCancel,
@@ -126,6 +138,9 @@ function BookingCard({
   onKeep,
 }: {
   booking: BookingRow;
+  slug: string;
+  studioName: string;
+  address?: string;
   tz: string;
   isConfirming?: boolean;
   onCancel?: () => void;
@@ -161,16 +176,19 @@ function BookingCard({
           </Text>
         </HStack>
 
-        {isActive ? (
-          <AddToCalendarButton
+        {isActive && booking.status !== 'in_progress' ? (
+          <ReminderOffer
+            slug={slug}
+            code={booking.code}
+            phone={booking.contact_phone}
             event={{
               uid: booking.code,
-              title: `${booking.service_name} — студия`,
+              title: `${booking.service_name} — ${studioName}`,
               description: `Код записи: ${booking.code}`,
+              location: address,
               startUtc: booking.starts_at,
               endUtc: booking.ends_at,
             }}
-            filename={`zapis-${booking.code}`}
           />
         ) : null}
 

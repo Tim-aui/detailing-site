@@ -7,7 +7,9 @@ import {createClient, type SupabaseClient} from '@supabase/supabase-js';
  * безопасно: RLS в базе решает, кому что видно. Секретный
  * service_role ключ живёт исключительно в Edge Functions.
  */
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const rawUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+// Относительный адрес (/sb) — для локального стенда за одним доменом с сайтом.
+const url = rawUrl?.startsWith('/') && typeof window !== 'undefined' ? `${window.location.origin}${rawUrl}` : rawUrl;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 /** Без базы приложение работает в демо-режиме: показывает студию из файла. */

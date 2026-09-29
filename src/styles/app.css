@@ -122,8 +122,22 @@
     padding-block: 96px 28px;
   }
 
-  /* Широкий CTA: слева текст в две строки, справа круглая «стрелка».
-     Сплошной брендовый цвет — читаемо на любом фото. */
+  /* Общий материал «стекло»: нижняя панель и главная кнопка на фото.
+     Размывается только то, что лежит ПОД элементом (фото героя), —
+     соседние секции туда не попадают. Текст не проходит через фильтр,
+     поэтому остаётся чётким. */
+  .glass {
+    background: rgba(18, 18, 22, 0.58);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Широкий CTA в стекле: текст в две строки и акцентная «стрелка».
+     Кнопка в потоке героя — едет вместе с фото. */
   .hero__cta {
     position: relative;
     z-index: 3;
@@ -134,29 +148,23 @@
     width: 100%;
     min-height: 68px;
     padding: 12px 12px 12px 22px;
-    border-radius: 20px;
+    border-radius: 22px;
+    overflow: clip;
+    isolation: isolate;
     text-decoration: none;
     color: #fff;
-    background: linear-gradient(180deg, #5a9dff 0%, #3b82f6 100%);
-    box-shadow:
-      0 10px 30px -8px rgba(59, 130, 246, 0.65),
-      inset 0 1px 0 rgba(255, 255, 255, 0.28),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.12);
     -webkit-tap-highlight-color: transparent;
     transition:
       transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
-      box-shadow 160ms ease,
-      filter 160ms ease;
+      border-color 160ms ease,
+      background-color 160ms ease;
   }
 
   @media (hover: hover) {
     .hero__cta:hover {
       transform: translateY(-2px);
-      filter: brightness(1.06);
-      box-shadow:
-        0 16px 36px -8px rgba(59, 130, 246, 0.75),
-        inset 0 1px 0 rgba(255, 255, 255, 0.32),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+      border-color: rgba(70, 144, 255, 0.55);
+      background-color: rgba(24, 26, 34, 0.62);
     }
     .hero__cta:hover .hero__cta-icon {
       transform: translateX(3px);
@@ -165,12 +173,37 @@
 
   .hero__cta:active {
     transform: scale(0.98);
-    filter: brightness(0.96);
   }
 
   .hero__cta:focus-visible {
     outline: 3px solid rgba(255, 255, 255, 0.9);
     outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__cta,
+    .hero__cta-icon {
+      transition: none;
+    }
+    .hero__cta:hover,
+    .hero__cta:hover .hero__cta-icon {
+      transform: none;
+    }
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass {
+      background: rgba(20, 20, 24, 0.92);
+    }
+  }
+
+  .hero__logo {
+    display: block;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    object-fit: cover;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
   }
 
   .hero__cta-text {
@@ -191,7 +224,7 @@
     font-size: 13px;
     font-weight: 500;
     line-height: 1.3;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.78);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -204,9 +237,9 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: #fff;
-    color: #3b82f6;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    background: #4690ff;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(70, 144, 255, 0.45);
     transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
@@ -649,6 +682,49 @@
     opacity: 0.7;
   }
 
+  /* Занятое время: видно, но выбрать нельзя. Отличается не только
+     цветом — зачёркнуто и подписано «занято». */
+  .slot--busy {
+    cursor: not-allowed;
+    color: rgba(255, 255, 255, 0.38);
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.03) 0 6px,
+      rgba(255, 255, 255, 0.07) 6px 12px
+    );
+    border-style: dashed;
+  }
+
+  .slot--busy .slot__time {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+  }
+
+  .date-chip--full {
+    opacity: 0.55;
+  }
+
+  .slot-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.64);
+  }
+
+  .slot-legend__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .slot-legend--busy .slot-legend__dot {
+    border-style: dashed;
+    background: repeating-linear-gradient(135deg, transparent 0 3px, rgba(255, 255, 255, 0.25) 3px 5px);
+  }
+
   /* ---------- Помощник ---------- */
 
   .chat {
@@ -686,5 +762,20 @@
   textarea,
   select {
     font-size: 16px;
+  }
+}
+/* ---- Кабинет владельца ---- */
+@layer app {
+  .admin {
+    min-height: 100dvh;
+    padding-block: 16px 48px;
+  }
+  .admin-photo {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
   }
 }

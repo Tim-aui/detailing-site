@@ -27,8 +27,10 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         // Страницы приложения — network-first с офлайн-запасом.
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: [/^\/api\//, /^\/tenants\//],
         cleanupOutdatedCaches: true,
+        // Напоминания о записи (web push) — обработчик в public/sw-push.js.
+        importScripts: ['/sw-push.js'],
         runtimeCaching: [
           {
             // Данные студии: сеть, при отсутствии сети — кэш (старые данные).
@@ -38,10 +40,11 @@ export default defineConfig({
           },
           {
             // API Supabase: сеть + кэш только для чтения.
+            // Фото из хранилища Supabase: имена уникальны, можно кэшировать.
             urlPattern: ({url, request}) =>
-              request.method === 'GET' && (url.hostname.endsWith('supabase.co')),
-            handler: 'NetworkFirst',
-            options: {cacheName: 'api-read', networkTimeoutSeconds: 5, expiration: {maxEntries: 120}},
+              request.method === 'GET' && url.hostname.endsWith('supabase.co') && url.pathname.startsWith('/storage/'),
+            handler: 'CacheFirst',
+            options: {cacheName: 'studio-media', expiration: {maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 60}},
           },
         ],
       },
@@ -52,5 +55,5 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: true,
   },
-  server: {port: 5173},
+  server: {port: 5173, host: true},
 });

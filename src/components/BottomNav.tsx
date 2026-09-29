@@ -17,7 +17,7 @@ export function BottomNav() {
 
   return (
     <nav className="bottom-nav" aria-label="Основная навигация">
-      <div className="bottom-nav__inner glass-surface">
+      <div className="bottom-nav__inner glass glass-surface">
         <ul className="bottom-nav__list" style={{listStyle: 'none', margin: 0, padding: 0}}>
           {ITEMS.map((item) => (
             <li key={item.to}>

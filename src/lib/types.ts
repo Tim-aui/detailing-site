@@ -11,6 +11,8 @@ export type BookingDraft = {
   contactPhone: string;
   car?: string;
   comment?: string;
+  /** Ключ попытки: повтор с тем же ключом не создаёт вторую запись. */
+  requestId?: string;
 };
 
 export type BookingRow = {

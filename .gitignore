@@ -5,7 +5,6 @@ dist-ssr
 *.local
 .env
 .env.*
-!.env.example
 test-results
 playwright-report
 coverage
@@ -14,3 +13,5 @@ src/tenants/generated
 .env*
 supabase/.temp/
 scripts/apply-migrations.mjs
+!.env.example
+e2e-shots

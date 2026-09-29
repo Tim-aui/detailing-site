@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {BusyBlock} from '../lib/schedule.ts';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import {Heading} from '@astryxdesign/core/Heading';
@@ -11,12 +11,12 @@ import {useToast} from '@astryxdesign/core/Toast';
 import {useTenant} from '../tenants/TenantContext.tsx';
 import {useBusy} from '../lib/studio.ts';
 import {useCreateBooking} from '../lib/bookings.ts';
-import {freeSlots, groupSlotsByDate, type FreeSlot} from '../lib/schedule.ts';
+import {slotGrid, groupSlotsByDate, type FreeSlot} from '../lib/schedule.ts';
 import {duration, money, studioDate, studioTime, dayName} from '../lib/format.ts';
 import {formatInTimeZone as fz} from 'date-fns-tz';
 import {ru} from 'date-fns/locale';
 import {IconByName} from '../components/icons.tsx';
-import {AddToCalendarButton} from '../components/AddToCalendarButton.tsx';
+import {ReminderOffer} from '../components/ReminderOffer.tsx';
 import {LoadingIndicator} from '../components/LoadingIndicator.tsx';
 
 // Стабильная ссылка: `= []` в деструктуризации создаёт новый массив на
@@ -72,11 +72,16 @@ export function BookingPage() {
   const service = services.find((s) => s.id === serviceId) ?? services[0];
   const {data: busy = NO_BUSY, isPending} = useBusy(slug, settings?.bookingHorizonDays ?? 30);
 
+  // Вся сетка дня: свободные окна и занятые (их показываем зачёркнутыми,
+  // чтобы было видно, что время есть, но оно уже чьё-то).
   const slots = useMemo<FreeSlot[]>(
-    () => (service ? freeSlots(settings!, service, {busy}) : []),
+    () => (service ? slotGrid(settings!, service, {busy}) : []),
     [service, settings, busy],
   );
   const byDate = useMemo(() => groupSlotsByDate(slots), [slots]);
+  // Ключ попытки записи: двойной клик и повтор после обрыва сети не
+  // создают вторую запись (сервер вернёт первую).
+  const requestId = useRef(crypto.randomUUID());
 
   // Смена услуги сбрасывает выбранное время: оно относилось к старой услуге.
   useEffect(() => {
@@ -93,7 +98,9 @@ export function BookingPage() {
   }, [byDate, date]);
 
   useEffect(() => {
-    if (date === null && byDate.length > 0) setDate(byDate[0].date);
+    if (date === null && byDate.length > 0) {
+      setDate((byDate.find((d) => d.slots.some((x) => x.available)) ?? byDate[0]).date);
+    }
   }, [byDate, date]);
 
   const create = useCreateBooking();
@@ -121,6 +128,7 @@ export function BookingPage() {
         contactPhone: phone.trim(),
         car: car.trim(),
         comment: comment.trim() || undefined,
+        requestId: requestId.current,
       });
     } catch (e) {
       toast({
@@ -131,7 +139,15 @@ export function BookingPage() {
   };
 
   if (create.data) {
-    return <BookingDone code={create.data.code} startUtc={create.data.startUtc} endUtc={create.data.endUtc} serviceName={service.name} />;
+    return (
+      <BookingDone
+        code={create.data.code}
+        startUtc={create.data.startUtc}
+        endUtc={create.data.endUtc}
+        serviceName={create.data.serviceName ?? service.name}
+        phone={phone.trim()}
+      />
+    );
   }
 
   return (
@@ -174,23 +190,26 @@ export function BookingPage() {
               </Text>
               {isPending ? (
                 <LoadingIndicator label="Смотрим занятость" />
-              ) : byDate.length === 0 ? (
+              ) : !byDate.some((d) => d.slots.some((x) => x.available)) ? (
                 <NoSlots serviceName={service.name} horizonDays={settings.bookingHorizonDays} />
               ) : (
                 <div className="date-strip" role="radiogroup" aria-label="Дата записи">
-                  {byDate.slice(0, 14).map((d) => (
-                    <button
-                      key={d.date}
-                      type="button"
-                      role="radio"
-                      aria-checked={date === d.date}
-                      className="date-chip"
-                      onClick={() => setDate(d.date)}
-                    >
-                      <span className="date-chip__day">{dayLabel(d.date, settings.timezone)}</span>
-                      <span className="date-chip__count">{d.slots.length} окон</span>
-                    </button>
-                  ))}
+                  {byDate.slice(0, 21).map((d) => {
+                    const free = d.slots.filter((x) => x.available).length;
+                    return (
+                      <button
+                        key={d.date}
+                        type="button"
+                        role="radio"
+                        aria-checked={date === d.date}
+                        className={`date-chip${free === 0 ? ' date-chip--full' : ''}`}
+                        onClick={() => setDate(d.date)}
+                      >
+                        <span className="date-chip__day">{dayLabel(d.date, settings.timezone)}</span>
+                        <span className="date-chip__count">{free === 0 ? 'всё занято' : `${free} ${plural(free, 'окно', 'окна', 'окон')}`}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </VStack>
@@ -203,6 +222,10 @@ export function BookingPage() {
                 <Text type="label" weight="semibold">
                   3. Время
                 </Text>
+                <HStack gap={3} style={{flexWrap: 'wrap'}} aria-hidden>
+                  <span className="slot-legend"><span className="slot-legend__dot" /> свободно</span>
+                  <span className="slot-legend slot-legend--busy"><span className="slot-legend__dot" /> занято</span>
+                </HStack>
                 <div className="slot-grid" role="radiogroup" aria-label="Время записи">
                   {slots
                     .filter((s) => s.date === date)
@@ -212,11 +235,18 @@ export function BookingPage() {
                         type="button"
                         role="radio"
                         aria-checked={slot?.startUtc === s.startUtc}
-                        className="slot"
-                        onClick={() => setSlot(s)}
+                        aria-disabled={!s.available}
+                        disabled={!s.available}
+                        aria-label={`${s.label}${s.available ? '' : ', занято'}`}
+                        className={`slot${s.available ? '' : ' slot--busy'}`}
+                        onClick={() => s.available && setSlot(s)}
                       >
                         <span className="slot__time">{s.label}</span>
-                        {s.boxesFree <= 1 ? <span className="slot__note">последний бокс</span> : null}
+                        {!s.available ? (
+                          <span className="slot__note">занято</span>
+                        ) : s.boxesFree <= 1 ? (
+                          <span className="slot__note">последний бокс</span>
+                        ) : null}
                       </button>
                     ))}
                 </div>
@@ -240,7 +270,6 @@ export function BookingPage() {
                 label="Как к вам обращаться"
                 value={name}
                 onChange={setName}
-                isRequired
                 status={nameError ? {type: 'error', message: nameError} : undefined}
                 placeholder="Иван"
               />
@@ -248,24 +277,21 @@ export function BookingPage() {
                 label="Телефон"
                 value={phone}
                 onChange={setPhone}
-                isRequired
                 type="text"
                 placeholder="+7 900 000-00-00"
                 description="Пришлём подтверждение и напомним о записи"
                 status={phoneError ? {type: 'error', message: phoneError} : undefined}
               />
               <TextInput
-                label="Автомобиль"
+                label="Автомобиль (необязательно)"
                 value={car}
                 onChange={setCar}
-                isOptional
                 placeholder="BMW X5, 2021"
               />
               <TextArea
-                label="Пожелания"
+                label="Пожелания (необязательно)"
                 value={comment}
                 onChange={setComment}
-                isOptional
                 placeholder="Например: нужно убрать битую плёнку с капота"
                 size="sm"
               />
@@ -328,11 +354,13 @@ function BookingDone({
   startUtc,
   endUtc,
   serviceName,
+  phone,
 }: {
   code: string;
   startUtc: string;
   endUtc: string;
   serviceName: string;
+  phone: string;
 }) {
   const {settings} = useTenant();
   const {slug} = useTenant();
@@ -384,17 +412,19 @@ function BookingDone({
             </VStack>
           </Card>
 
-          <AddToCalendarButton
+          <ReminderOffer
+            slug={slug}
+            code={code}
+            phone={phone}
             event={{
               uid: code,
               title: `${serviceName} — ${settings?.name ?? 'Студия'}`,
-              description: `Код записи: ${code}`,
+              description: `Код записи: ${code}. Телефон студии: ${settings?.phone ?? ''}`,
               location: settings?.address.full,
-              url: typeof window !== 'undefined' ? window.location.href : undefined,
+              url: typeof window !== 'undefined' ? `${window.location.origin}/s/${slug}/my-booking` : undefined,
               startUtc,
               endUtc,
             }}
-            filename={`zapis-${code}`}
           />
 
           <Button
@@ -409,6 +439,14 @@ function BookingDone({
       </Section>
     </main>
   );
+}
+
+function plural(n: number, one: string, few: string, many: string): string {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
 }
 
 function isPhone(v: string): boolean {

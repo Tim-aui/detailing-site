@@ -23,6 +23,11 @@ export type BusyBlock = {
   startsAt: string;
   endsAt: string;
   status: BookingStatus;
+  /**
+   * Бокс записи. С ним окна считаются по каждому боксу отдельно — так же,
+   * как сервер. Без него (локальный режим) — по числу занятых боксов.
+   */
+  boxId?: string;
 };
 
 export type Interval = {start: number; end: number};
@@ -44,6 +49,8 @@ export type FreeSlot = {
   date: string;
   /** Сколько боксов свободно на это время. */
   boxesFree: number;
+  /** false — время занято (показываем зачёркнутым, выбрать нельзя). */
+  available: boolean;
 };
 
 export function minutesFromTime(t: string): number {
@@ -64,7 +71,8 @@ export function formatDate(d: Date): string {
 export function dayWindow(config: StudioSettings, studioLocalDate: Date): DayWindow {
   const hours = config.hours.find((h) => h.day === studioLocalDate.getDay());
   const date = formatDate(studioLocalDate);
-  if (!hours || hours.open === null || hours.close === null) {
+  const closed = (config.closedDates ?? []).includes(date);
+  if (closed || !hours || hours.open === null || hours.close === null) {
     return {date, isOpen: false, openMin: null, closeMin: null};
   }
   return {
@@ -156,10 +164,44 @@ export type SlotQuery = {
 };
 
 /**
- * Свободные окна для услуги. Начало каждого окна кратно stepMin
- * относительно открытия — сетка слотов одинаковая от дня к дню.
+ * Свободен ли интервал: есть бокс, в котором он ни с чем не пересекается.
+ * Правило то же, что у сервера (pick_free_box): многодневной работе
+ * нужен бокс с acceptsLongStay, занятость бокса = [начало, конец + буфер].
  */
-export function freeSlots(
+function freeBoxes(
+  config: StudioSettings,
+  service: {days: number},
+  busy: BusyBlock[],
+  intervals: Interval[],
+  span: Interval,
+): number {
+  const boxes = config.boxes.filter((b) => b.isActive && (service.days <= 1 || b.acceptsLongStay));
+  const perBox = busy.length > 0 && busy.every((b) => b.boxId);
+  if (!perBox) {
+    // Локальный режим без боксов у записей: считаем по пиковой занятости.
+    const total = config.boxes.filter((b) => b.isActive).length;
+    return Math.max(0, Math.min(boxes.length, total - peakBusy(intervals, span)));
+  }
+  const pad = config.bufferMin * 60_000;
+  let free = 0;
+  for (const box of boxes) {
+    const clash = busy.some(
+      (b) =>
+        b.boxId === box.id &&
+        b.status !== 'cancelled' &&
+        b.status !== 'done' &&
+        overlaps(span, {start: new Date(b.startsAt).getTime() - pad, end: new Date(b.endsAt).getTime() + pad}),
+    );
+    if (!clash) free++;
+  }
+  return free;
+}
+
+/**
+ * Сетка окон для услуги — и свободные, и занятые (available=false).
+ * Начало каждого окна кратно stepMin относительно открытия.
+ */
+export function slotGrid(
   config: StudioSettings,
   service: {durationMin: number; days: number},
   query: SlotQuery,
@@ -191,31 +233,22 @@ export function freeSlots(
     const firstDay = chain[0]!;
     const lastDay = chain[chain.length - 1]!;
 
-    // Граница сетки: для однодневной работы начало должно оставить
-    // время под неё в первый день, для многодневной — попасть в
-    // открытие первого дня, а финиш проверит последний (см. ниже).
-    const lastStart = service.days > 1 ? firstDay.end.getTime() : win.end.getTime() - service.durationMin * 60_000;
+    // Однодневная работа должна закончиться до закрытия; многодневная
+    // начинается в любое рабочее время первого дня (как на сервере).
+    const lastStart =
+      service.days > 1 ? firstDay.end.getTime() - stepMin * 60_000 : win.end.getTime() - service.durationMin * 60_000;
 
-    for (
-      let t = win.start.getTime();
-      t <= lastStart;
-      t += stepMin * 60_000
-    ) {
+    for (let t = win.start.getTime(); t <= lastStart; t += stepMin * 60_000) {
       if (t < earliest) continue;
       if (seen.has(t)) continue;
 
       const end = bookingEnd(config, new Date(t), service);
       const span: Interval = {start: t, end: end.getTime()};
-      // Старт — в первый день, финиш — не позже закрытия последнего.
-      // Проверять конец по закрытию первого дня нельзя: многодневная
-      // работа по определению переходит на следующие сутки.
-      if (span.start < firstDay.start.getTime() || span.start > firstDay.end.getTime()) continue;
+      if (span.start < firstDay.start.getTime() || span.start >= firstDay.end.getTime()) continue;
       if (span.end > lastDay.end.getTime()) continue;
 
-      if (peakBusy(intervals, span) >= boxes.length) continue;
-
       seen.add(t);
-      const free = boxes.length - peakBusy(intervals, span);
+      const free = freeBoxes(config, service, query.busy, intervals, span);
       const w = dayWindow(config, localDate);
       // Подпись — время настенных часов студии: открытие + смещение.
       const label = timeFromMinutes((w.openMin ?? 0) + (t - win.start.getTime()) / 60_000);
@@ -225,10 +258,20 @@ export function freeSlots(
         label,
         date: w.date,
         boxesFree: free,
+        available: free > 0,
       });
     }
   }
   return slots;
+}
+
+/** Только свободные окна для услуги. */
+export function freeSlots(
+  config: StudioSettings,
+  service: {durationMin: number; days: number},
+  query: SlotQuery,
+): FreeSlot[] {
+  return slotGrid(config, service, query).filter((s) => s.available);
 }
 
 /** Слоты, сгруппированные по дате студии — для ленты выбора даты. */

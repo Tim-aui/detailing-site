@@ -14,7 +14,13 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {Theme} from '@astryxdesign/core/theme';
 import {studioTheme} from '../src/styles/studio.js';
 import {App} from '../src/App.tsx';
-import {allSeeds} from '../src/lib/studio.ts';
+import {allSeeds, seedFor} from '../src/lib/studio.ts';
+
+// Ожидания берём из того же studio.json, что и сборка: переименование
+// студии или смена цен не ломают тест, а пропажа данных — ломает.
+const demo = seedFor('demo')!.config;
+const activeServices = demo.services.filter((s) => s.isActive);
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 function renderAt(path: string) {
   const client = new QueryClient({
@@ -38,21 +44,24 @@ beforeEach(() => {
 describe('Главная страница студии', () => {
   it('показывает название студии из файла настроек', async () => {
     renderAt('/s/demo/');
-    expect(await screen.findByRole('heading', {name: 'NORTH DETAIL'})).toBeInTheDocument();
+    expect(await screen.findByRole('heading', {name: demo.name, level: 1})).toBeInTheDocument();
   });
 
   it('выводит услуги с ценами', async () => {
     renderAt('/s/demo/');
-    expect(await screen.findByText('Полировка кузова')).toBeInTheDocument();
-    // Цена хранится в копейках: 1 590 000 копеек = 15 900 ₽.
-    expect(screen.getAllByText(/15[\s ]900/).length).toBeGreaterThan(0);
+    const first = activeServices[0];
+    expect((await screen.findAllByText(first.name)).length).toBeGreaterThan(0);
+    // Цена хранится в копейках, на экране — рубли в формате money().
+    const digits = String(Math.round(first.price / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, '[\\s\\u00a0\\u202f]?');
+    expect(screen.getAllByText(new RegExp(digits)).length).toBeGreaterThan(0);
   });
 
   it('показывает три карточки «почему мы»', async () => {
     renderAt('/s/demo/');
-    expect(await screen.findByText('Гарантия на покрытие')).toBeInTheDocument();
-    expect(screen.getByText('Работаем без пыли')).toBeInTheDocument();
-    expect(screen.getByText('Фото до и после')).toBeInTheDocument();
+    expect(demo.infoCards).toHaveLength(3);
+    for (const card of demo.infoCards) {
+      expect(await screen.findByText(card.title)).toBeInTheDocument();
+    }
   });
 
   it('нижняя навигация ведёт на три раздела', async () => {
@@ -63,10 +72,10 @@ describe('Главная страница студии', () => {
     expect(within(nav).getByRole('link', {name: /Моя запись/})).toHaveAttribute('href', '/s/demo/my-booking');
   });
 
-  it('главное фото ведёт на страницу записи', async () => {
+  it('кнопка на главном фото ведёт на страницу записи', async () => {
     const user = userEvent.setup();
     renderAt('/s/demo/');
-    await user.click(await screen.findByRole('link', {name: /Записаться в студию/}));
+    await user.click(await screen.findByRole('link', {name: /Записаться онлайн/}));
     expect(await screen.findByRole('heading', {name: 'Запись в студию'})).toBeInTheDocument();
   });
 
@@ -88,8 +97,9 @@ describe('Главная страница студии', () => {
 describe('Страница услуг', () => {
   it('показывает все услуги студии', async () => {
     renderAt('/s/demo/services');
-    expect(await screen.findByText('Химчистка салона')).toBeInTheDocument();
-    expect(screen.getByText('Керамическое покрытие')).toBeInTheDocument();
+    for (const service of activeServices) {
+      expect((await screen.findAllByText(new RegExp(`^${escape(service.name)}$`))).length).toBeGreaterThan(0);
+    }
   });
 });
 
@@ -146,5 +156,30 @@ describe('Моя запись', () => {
   it('пустое состояние объясняет, что делать', async () => {
     renderAt('/s/demo/my-booking');
     expect(await screen.findByText('Записей пока нет')).toBeInTheDocument();
+  });
+});
+
+describe('Кабинет владельца', () => {
+  it('без базы объясняет, что кабинету нужна Supabase, и не показывает данные', async () => {
+    renderAt('/s/demo/admin');
+    expect(await screen.findByText('Кабинет работает только с базой')).toBeInTheDocument();
+    expect(screen.queryByRole('navigation', {name: 'Основная навигация'})).not.toBeInTheDocument();
+  });
+
+  it('неизвестная студия в кабинете — заглушка', async () => {
+    renderAt('/s/nope/admin');
+    expect(await screen.findByRole('heading', {name: 'Студия не найдена'})).toBeInTheDocument();
+  });
+});
+
+
+describe('Установка', () => {
+  it('страница студии подключает её манифест и значок', async () => {
+    renderAt('/s/demo/');
+    await screen.findByRole('heading', {name: demo.name, level: 1});
+    await waitFor(() =>
+      expect(document.querySelector('link[rel="manifest"]')?.getAttribute('href')).toBe('/tenants/demo/manifest.webmanifest'),
+    );
+    expect(document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href')).toBe('/tenants/demo/apple-touch-icon.png');
   });
 });

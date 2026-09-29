@@ -116,6 +116,8 @@ export const studioSettingsSchema = z.object({
   timezone: z.string().default('Europe/Moscow'),
 
   hours: z.array(workingHoursSchema).length(7, 'Нужны все 7 дней недели'),
+  /** Отдельные нерабочие даты студии (праздники, отпуск), YYYY-MM-DD. */
+  closedDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Дата в формате ГГГГ-ММ-ДД')).default([]),
 
   /** Отступ между машинами (подготовка бокса), минуты. */
   bufferMin: z.number().int().min(0).max(240).default(15),
@@ -165,7 +167,9 @@ export type WorkingHours = z.infer<typeof workingHoursSchema>;
 
 /**
  * Настройки, которые владелец может менять из кабинета.
- * Всё, что здесь не перечислено (slug, pwa, assistants) — служебное.
+ * Всё, что здесь не перечислено (slug, pwa, timezone) — служебное.
+ * Тот же список проверяет сервер: owner_save_settings в миграции
+ * 20260102000000_owner_cabinet.sql. Меняете здесь — поменяйте и там.
  */
 export const OWNER_EDITABLE_KEYS = [
   'name',
@@ -175,6 +179,7 @@ export const OWNER_EDITABLE_KEYS = [
   'messengers',
   'address',
   'hours',
+  'closedDates',
   'bufferMin',
   'minNoticeHours',
   'bookingHorizonDays',
@@ -186,7 +191,6 @@ export const OWNER_EDITABLE_KEYS = [
   'infoCards',
   'cancellation',
   'assistantSuggestions',
-  'timezone',
 ] as const;
 
 export type OwnerEditableKey = (typeof OWNER_EDITABLE_KEYS)[number];
@@ -200,7 +204,22 @@ export function mergeTenantConfig(
   patch: Partial<Record<OwnerEditableKey, unknown>> | null | undefined,
 ): StudioSettings {
   if (!patch) return base;
-  const safe: Record<string, unknown> = {...patch};
-  delete safe.slug;
-  return studioSettingsSchema.parse({...base, ...safe});
+  const safe: Record<string, unknown> = {};
+  for (const key of OWNER_EDITABLE_KEYS) {
+    if (key in patch) safe[key] = (patch as Record<string, unknown>)[key];
+  }
+  const merged = studioSettingsSchema.safeParse({...base, ...safe});
+  // Битая правка в базе не должна ронять сайт: показываем файл студии.
+  return merged.success ? merged.data : base;
+}
+
+/**
+ * Адрес фото студии. В studio.json лежат имена файлов из
+ * tenants/<slug>/photos/, а фото, загруженные владельцем из кабинета, —
+ * полные ссылки на хранилище Supabase.
+ */
+export function photoUrl(slug: string, photo: string | null | undefined): string {
+  if (!photo) return '';
+  if (/^(https?:)?\/\//.test(photo) || photo.startsWith('/') || photo.startsWith('data:')) return photo;
+  return `/tenants/${slug}/photos/${photo}`;
 }
