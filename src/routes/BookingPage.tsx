@@ -6,7 +6,6 @@ import {VStack, HStack, StackItem, Card, Section} from '@astryxdesign/core/Layou
 import {Button} from '@astryxdesign/core/Button';
 import {TextInput} from '@astryxdesign/core/TextInput';
 import {TextArea} from '@astryxdesign/core/TextArea';
-import {Selector} from '@astryxdesign/core/Selector';
 import {useToast} from '@astryxdesign/core/Toast';
 import {useTenant} from '../tenants/TenantContext.tsx';
 import {useBusy} from '../lib/studio.ts';
@@ -134,16 +133,18 @@ export function BookingPage() {
               <Text type="label" weight="semibold">
                 1. Услуга
               </Text>
-              <Selector
-                label="Выберите услугу"
-                value={service.id}
-                onChange={setServiceId}
-                options={services.map((s) => ({
-                  value: s.id,
-                  label: `${s.name} — ${money(s.price)}`,
-                  description: duration(s.durationMin, s.days),
-                }))}
-              />
+              <select
+                value={serviceId}
+                onChange={(e) => setServiceId(e.target.value)}
+                className="service-select"
+                aria-label="Выберите услугу"
+              >
+                {services.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} — {money(s.price)} · {duration(s.durationMin, s.days)}
+                  </option>
+                ))}
+              </select>
             </VStack>
           </Card>
 

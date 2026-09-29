@@ -122,8 +122,7 @@
     padding-block: 96px 28px;
   }
 
-  /* Широкий зелёный(синий) блок CTA. Собственный слой, свой фон под
-     подписью — надпись остаётся чёткой поверх любого фото. */
+  /* Широкий CTA. Сплошной брендовый цвет — читаемо на любом фото. */
   .hero__cta {
     position: relative;
     z-index: 3;
@@ -132,17 +131,21 @@
     border-radius: 18px;
     overflow: hidden;
     text-decoration: none;
-    /* Подложка под текст: гарантирует контраст над фотографией. */
-    background: rgba(70, 144, 255, 0.22);
+    background: #4690ff;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.22),
-      0 8px 28px rgba(0, 0, 0, 0.5);
+      0 4px 16px rgba(70, 144, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
     -webkit-tap-highlight-color: transparent;
-    transition: transform 180ms ease, background-color 180ms ease;
+    transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
   }
 
+  .hero__cta:hover,
   .hero__cta:active {
-    transform: scale(0.985);
+    transform: translateY(-2px);
+    background: #357ae8;
+    box-shadow:
+      0 8px 24px rgba(70, 144, 255, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
   }
 
   .hero__cta-label {
@@ -152,15 +155,12 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 18px 20px;
-    font-size: 18px;
+    padding: 22px 24px;
+    font-size: 20px;
     font-weight: 700;
     letter-spacing: -0.01em;
     color: #fff;
     text-align: center;
-    /* Собственная подложка под буквами: даже если шейдер liquid-gl
-       не запустился, надпись остаётся читаемой. */
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   }
 
   .hero__cta-hint {
@@ -320,7 +320,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 50;
+    z-index: 60;
     padding: 10px 12px calc(10px + var(--safe-b));
     pointer-events: none;
   }
@@ -436,6 +436,33 @@
   .tap {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+  }
+
+  /* ---------- Нативный select для услуг ---------- */
+
+  .service-select {
+    width: 100%;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    color: #fff;
+    font: inherit;
+    font-size: 16px;
+    padding: 14px 44px 14px 16px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .service-select:focus {
+    outline: none;
+    border-color: #4690ff;
+    box-shadow: 0 0 0 2px rgba(70, 144, 255, 0.25);
+  }
+
+  .service-select option {
+    background: #1a1a1e;
+    color: #fff;
   }
 
   /* ---------- Фильтры-чипсы ---------- */
