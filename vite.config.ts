@@ -28,6 +28,7 @@ export default defineConfig({
         // Страницы приложения — network-first с офлайн-запасом.
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             // Данные студии: сеть, при отсутствии сети — кэш (старые данные).
