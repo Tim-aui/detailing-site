@@ -1,130 +1,240 @@
 {
-  "name": "NORTH DETAIL",
+  "name": "DETAILING 1808",
   "slug": "demo",
-  "tagline": "Детейлинг-студия полного цикла",
-  "description": "Кузовной ремонт без пыли, полировка и химчистка салона. Работаем аккуратно: вы оставляете машину — забираете её как новую.",
-  "phone": "+7 495 120-45-67",
-  "messengers": ["whatsapp", "telegram"],
+  "tagline": "Детейлинг-студия в Анапе",
+  "description": "Полировка, керамика, химчистка салона и бронирование плёнкой. Работаем ежедневно с 10:00 до 18:00 в Алексеевке — запишитесь онлайн, и бокс будет ждать вас в выбранное время.",
+  "phone": "+7 918 053-22-56",
+  "messengers": [
+    "whatsapp",
+    "telegram"
+  ],
   "address": {
-    "city": "Москва",
-    "street": "Кутузовский проспект, 12",
-    "full": "Москва, Кутузовский проспект, 12",
-    "latitude": 55.7405,
-    "longitude": 37.5401,
-    "directionsNote": "Въезд со стороны Баррикадного. Бесплатная парковка для клиентов — во дворе, 40 мест."
+    "city": "Анапа",
+    "street": "мкр. Алексеевка, Рождественский проезд, 8",
+    "full": "Анапа, мкр. Алексеевка, Рождественский проезд, 8",
+    "latitude": 44.9002,
+    "longitude": 37.366242,
+    "directionsNote": "Есть парковка для клиентов. Второй номер для связи: +7 900 001-77-26."
   },
   "timezone": "Europe/Moscow",
   "hours": [
-    { "day": 0, "open": null, "close": null },
-    { "day": 1, "open": "09:00", "close": "21:00" },
-    { "day": 2, "open": "09:00", "close": "21:00" },
-    { "day": 3, "open": "09:00", "close": "21:00" },
-    { "day": 4, "open": "09:00", "close": "21:00" },
-    { "day": 5, "open": "09:00", "close": "21:00" },
-    { "day": 6, "open": "10:00", "close": "20:00" }
+    {
+      "day": 0,
+      "open": "10:00",
+      "close": "18:00"
+    },
+    {
+      "day": 1,
+      "open": "10:00",
+      "close": "18:00"
+    },
+    {
+      "day": 2,
+      "open": "10:00",
+      "close": "18:00"
+    },
+    {
+      "day": 3,
+      "open": "10:00",
+      "close": "18:00"
+    },
+    {
+      "day": 4,
+      "open": "10:00",
+      "close": "18:00"
+    },
+    {
+      "day": 5,
+      "open": "10:00",
+      "close": "18:00"
+    },
+    {
+      "day": 6,
+      "open": "10:00",
+      "close": "18:00"
+    }
   ],
   "bufferMin": 15,
   "minNoticeHours": 2,
   "bookingHorizonDays": 30,
   "services": [
     {
-      "id": "complex",
-      "name": "Комплексный детейлинг",
-      "description": "Мойка, сушка, коррекция ЛКП, полировка и защита на 6 месяцев.",
-      "price": 2490000,
-      "durationMin": 480,
-      "days": 1,
-      "icon": "sparkle",
-      "isPopular": true,
-      "isActive": true
-    },
-    {
       "id": "polish",
       "name": "Полировка кузова",
-      "description": "Глубокая коррекция ЛКП в три прохода, финишный глянец.",
-      "price": 1590000,
-      "durationMin": 360,
+      "description": "Восстановление глянца до заводского состояния и удаление царапин, появившихся в лаке за время эксплуатации.",
+      "price": 1300000,
+      "durationMin": 480,
       "days": 1,
-      "icon": "diamonds",
+      "icon": "diamond",
       "isPopular": true,
       "isActive": true
     },
     {
       "id": "ceramic",
-      "name": "Керамическое покрытие",
-      "description": "Химическая чистка, полировка, керамика на 3 года с гарантией.",
-      "price": 3490000,
-      "durationMin": 1440,
-      "days": 2,
+      "name": "Защитное покрытие «Керамика»",
+      "description": "Состав образует на кузове прочный защитный слой: ЛКП лучше переносит эксплуатацию и дольше выглядит свежим.",
+      "price": 900000,
+      "durationMin": 360,
+      "days": 1,
       "icon": "shield",
-      "isPopular": false,
+      "isPopular": true,
       "isActive": true
     },
     {
       "id": "interior",
       "name": "Химчистка салона",
-      "description": "Пылесос, сухая чистка, парогенератор, уход за кожей и пластиком.",
-      "price": 990000,
-      "durationMin": 180,
+      "description": "Экологичные гипоаллергенные средства, безопасные для здоровья. Салон — как новый.",
+      "price": 700000,
+      "durationMin": 360,
       "days": 1,
       "icon": "sofa",
+      "isPopular": true,
+      "isActive": true
+    },
+    {
+      "id": "ppf-risk",
+      "name": "Бронирование плёнкой «Зоны риска»",
+      "description": "Передняя часть: бампер, фары, капот, крылья, стойки и полоса над лобовым стеклом.",
+      "price": 4000000,
+      "durationMin": 480,
+      "days": 2,
+      "icon": "shield-check",
       "isPopular": false,
       "isActive": true
     },
     {
-      "id": "wash",
-      "name": "Экспресс-мойка",
-      "description": "Бесконтактная мойка кузова и салона, сушка, уборка салона.",
-      "price": 390000,
-      "durationMin": 60,
+      "id": "ppf-full",
+      "name": "Бронирование всего автомобиля",
+      "description": "Полная оклейка кузова антигравийной плёнкой.",
+      "price": 8500000,
+      "durationMin": 480,
+      "days": 4,
+      "icon": "car-profile",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "noise",
+      "name": "Шумоизоляция",
+      "description": "Шумоизоляция салона автомобиля.",
+      "price": 1000000,
+      "durationMin": 480,
+      "days": 1,
+      "icon": "wind",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "wax",
+      "name": "Защитное покрытие «Воск»",
+      "description": "Быстрая защита кузова и глубокий блеск после мойки.",
+      "price": 350000,
+      "durationMin": 90,
       "days": 1,
       "icon": "drop",
       "isPopular": false,
       "isActive": true
     },
     {
-      "id": "leather",
-      "name": "Уход за кожей",
-      "description": "Очистка, питание и защита кожаных сидений и руля.",
-      "price": 690000,
-      "durationMin": 120,
+      "id": "engine",
+      "name": "Мойка подкапотного пространства",
+      "description": "Очистка двигателя паром, включая труднодоступные места. Без сильного напора воды — оборудование в безопасности.",
+      "price": 100000,
+      "durationMin": 60,
       "days": 1,
-      "icon": "armchair",
+      "icon": "wrench",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "headlights",
+      "name": "Полировка фар",
+      "description": "Убираем помутнение и возвращаем прозрачность оптике.",
+      "price": 100000,
+      "durationMin": 60,
+      "days": 1,
+      "icon": "sparkle",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "tint",
+      "name": "Тонировка",
+      "description": "Тонировка стёкол автомобиля.",
+      "price": 100000,
+      "durationMin": 90,
+      "days": 1,
+      "icon": "car",
       "isPopular": false,
       "isActive": true
     }
   ],
   "boxes": [
-    { "id": "box-1", "name": "Бокс 1", "acceptsLongStay": true, "isActive": true },
-    { "id": "box-2", "name": "Бокс 2", "acceptsLongStay": true, "isActive": true },
-    { "id": "box-3", "name": "Бокс 3", "acceptsLongStay": false, "isActive": true }
+    {
+      "id": "box-1",
+      "name": "Бокс 1",
+      "acceptsLongStay": true,
+      "isActive": true
+    },
+    {
+      "id": "box-2",
+      "name": "Бокс 2",
+      "acceptsLongStay": true,
+      "isActive": true
+    },
+    {
+      "id": "box-3",
+      "name": "Бокс 3",
+      "acceptsLongStay": false,
+      "isActive": true
+    }
   ],
-"heroPhoto": "hero.jpg",
+  "heroPhoto": "hero-1808.jpg",
   "logo": null,
   "gallery": [
-    {"id": "g1", "photo": "XXXL.webp", "caption": "Полировка BMW"},
-    {"id": "g2", "photo": "XXXL-2.webp", "caption": "Керамика"},
-    {"id": "g3", "photo": "XXXL-3.webp", "caption": "Химчистка"},
-    {"id": "g4", "photo": "XXXL-4.webp", "caption": "Детейлинг"}
+    {
+      "id": "g1",
+      "photo": "XXXL.webp",
+      "caption": "Полировка кузова",
+      "order": 1
+    },
+    {
+      "id": "g2",
+      "photo": "XXXL-2.webp",
+      "caption": "Керамика",
+      "order": 2
+    },
+    {
+      "id": "g3",
+      "photo": "XXXL-3.webp",
+      "caption": "Химчистка салона",
+      "order": 3
+    },
+    {
+      "id": "g4",
+      "photo": "XXXL-4.webp",
+      "caption": "Детейлинг",
+      "order": 4
+    }
   ],
   "infoCards": [
     {
       "id": "c1",
-      "title": "Гарантия на покрытие",
-      "text": "На керамику и защитные составы — до 3 лет. Гарантия оформляется вместе с актом работ.",
-      "icon": "shield-check"
+      "title": "«Хорошее место» 2026",
+      "text": "Награда Яндекс Карт и рейтинг 4,7 по отзывам клиентов.",
+      "icon": "star"
     },
     {
       "id": "c2",
-      "title": "Работаем без пыли",
-      "text": "Все этапы с пылью делаем в закрытом боксе с фильтрацией. В зале чисто, машины ждут в очереди.",
-      "icon": "wind"
+      "title": "Безопасная химия",
+      "text": "Для химчистки используем экологичные гипоаллергенные средства — без резкого запаха и вреда для здоровья.",
+      "icon": "shield-check"
     },
     {
       "id": "c3",
-      "title": "Фото до и после",
-      "text": "Каждый этап фотографируем и присылаем в мессенджер. Видно, что именно сделали.",
-      "icon": "camera"
+      "title": "Удобно ждать",
+      "text": "Парковка, Wi‑Fi и оплата картой. Можно приехать с питомцем.",
+      "icon": "car"
     }
   ],
   "cancellation": {
@@ -133,11 +243,11 @@
   },
   "assistantSuggestions": [
     "Когда ближайшее окно?",
-    "Сколько стоит полировка?",
-    "Как найти студию?"
+    "Сколько стоит бронирование плёнкой?",
+    "Как вас найти?"
   ],
   "pwa": {
-    "shortName": "NORTH",
+    "shortName": "1808",
     "themeColor": "#4690FF",
     "backgroundColor": "#000000",
     "icon": "icon-192.png"
