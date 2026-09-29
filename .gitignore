@@ -1,0 +1,14 @@
+node_modules
+dist
+dist-ssr
+.vercel
+*.local
+.env
+.env.*
+!.env.example
+test-results
+playwright-report
+coverage
+.DS_Store
+src/tenants/generated
+.env*

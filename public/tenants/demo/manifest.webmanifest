@@ -1,0 +1,62 @@
+{
+  "id": "/s/demo/",
+  "name": "NORTH DETAIL — запись",
+  "short_name": "NORTH",
+  "description": "Кузовной ремонт без пыли, полировка и химчистка салона. Работаем аккуратно: вы оставляете машину — забираете её как новую.",
+  "start_url": "/s/demo/",
+  "scope": "/s/demo/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#4690FF",
+  "lang": "ru",
+  "dir": "ltr",
+  "categories": [
+    "business",
+    "lifestyle"
+  ],
+  "icons": [
+    {
+      "src": "/tenants/demo/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/tenants/demo/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/tenants/demo/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Записаться",
+      "short_name": "Запись",
+      "url": "/s/demo/booking",
+      "icons": [
+        {
+          "src": "/tenants/demo/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Моя запись",
+      "short_name": "Моя запись",
+      "url": "/s/demo/my-booking",
+      "icons": [
+        {
+          "src": "/tenants/demo/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

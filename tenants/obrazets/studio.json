@@ -1,0 +1,211 @@
+{
+  "name": "ОБРАЗЕЦ СТУДИИ",
+  "slug": "obrazets",
+  "tagline": "Коротко о студии: чем занимаетесь и чем отличаетесь",
+  "description": "Расскажите, как проходит работа и что получает клиент.",
+  "phone": "+7 495 120-45-67",
+  "messengers": [
+    "whatsapp",
+    "telegram"
+  ],
+  "address": {
+    "city": "Москва",
+    "street": "Кутузовский проспект, 12",
+    "full": "Москва, Кутузовский проспект, 12",
+    "latitude": 55.7405,
+    "longitude": 37.5401,
+    "directionsNote": "Въезд со стороны Баррикадного. Бесплатная парковка для клиентов — во дворе, 40 мест."
+  },
+  "timezone": "Europe/Moscow",
+  "hours": [
+    {
+      "day": 0,
+      "open": null,
+      "close": null
+    },
+    {
+      "day": 1,
+      "open": "09:00",
+      "close": "21:00"
+    },
+    {
+      "day": 2,
+      "open": "09:00",
+      "close": "21:00"
+    },
+    {
+      "day": 3,
+      "open": "09:00",
+      "close": "21:00"
+    },
+    {
+      "day": 4,
+      "open": "09:00",
+      "close": "21:00"
+    },
+    {
+      "day": 5,
+      "open": "09:00",
+      "close": "21:00"
+    },
+    {
+      "day": 6,
+      "open": "10:00",
+      "close": "20:00"
+    }
+  ],
+  "bufferMin": 15,
+  "minNoticeHours": 2,
+  "bookingHorizonDays": 30,
+  "services": [
+    {
+      "id": "complex",
+      "name": "Комплексный детейлинг",
+      "description": "Мойка, сушка, коррекция ЛКП, полировка и защита на 6 месяцев.",
+      "price": 2490000,
+      "durationMin": 480,
+      "days": 1,
+      "icon": "sparkle",
+      "isPopular": true,
+      "isActive": true
+    },
+    {
+      "id": "polish",
+      "name": "Полировка кузова",
+      "description": "Глубокая коррекция ЛКП в три прохода, финишный глянец.",
+      "price": 1590000,
+      "durationMin": 360,
+      "days": 1,
+      "icon": "diamonds",
+      "isPopular": true,
+      "isActive": true
+    },
+    {
+      "id": "ceramic",
+      "name": "Керамическое покрытие",
+      "description": "Химическая чистка, полировка, керамика на 3 года с гарантией.",
+      "price": 3490000,
+      "durationMin": 1440,
+      "days": 2,
+      "icon": "shield",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "interior",
+      "name": "Химчистка салона",
+      "description": "Пылесос, сухая чистка, парогенератор, уход за кожей и пластиком.",
+      "price": 990000,
+      "durationMin": 180,
+      "days": 1,
+      "icon": "sofa",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "wash",
+      "name": "Экспресс-мойка",
+      "description": "Бесконтактная мойка кузова и салона, сушка, уборка салона.",
+      "price": 390000,
+      "durationMin": 60,
+      "days": 1,
+      "icon": "drop",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "leather",
+      "name": "Уход за кожей",
+      "description": "Очистка, питание и защита кожаных сидений и руля.",
+      "price": 690000,
+      "durationMin": 120,
+      "days": 1,
+      "icon": "armchair",
+      "isPopular": false,
+      "isActive": true
+    }
+  ],
+  "boxes": [
+    {
+      "id": "box-1",
+      "name": "Бокс 1",
+      "acceptsLongStay": true,
+      "isActive": true
+    },
+    {
+      "id": "box-2",
+      "name": "Бокс 2",
+      "acceptsLongStay": true,
+      "isActive": true
+    },
+    {
+      "id": "box-3",
+      "name": "Бокс 3",
+      "acceptsLongStay": false,
+      "isActive": true
+    }
+  ],
+  "heroPhoto": "hero.jpg",
+  "logo": null,
+  "gallery": [
+    {
+      "id": "g1",
+      "photo": "work-1.svg",
+      "caption": "Полировка BMW M4, чёрный сатин",
+      "order": 1
+    },
+    {
+      "id": "g2",
+      "photo": "work-2.svg",
+      "caption": "Керамика на Porsche 911",
+      "order": 2
+    },
+    {
+      "id": "g3",
+      "photo": "work-3.svg",
+      "caption": "Химчистка салона, бежевая кожа",
+      "order": 3
+    },
+    {
+      "id": "g4",
+      "photo": "work-4.svg",
+      "caption": "Детейлинг Range Rover",
+      "order": 4
+    }
+  ],
+  "infoCards": [
+    {
+      "id": "c1",
+      "title": "Гарантия на покрытие",
+      "text": "На керамику и защитные составы — до 3 лет. Гарантия оформляется вместе с актом работ.",
+      "icon": "shield-check"
+    },
+    {
+      "id": "c2",
+      "title": "Работаем без пыли",
+      "text": "Все этапы с пылью делаем в закрытом боксе с фильтрацией. В зале чисто, машины ждут в очереди.",
+      "icon": "wind"
+    },
+    {
+      "id": "c3",
+      "title": "Фото до и после",
+      "text": "Каждый этап фотографируем и присылаем в мессенджер. Видно, что именно сделали.",
+      "icon": "camera"
+    }
+  ],
+  "cancellation": {
+    "freeCancelHours": 12,
+    "note": "Отменить или перенести запись без штрафа можно не позднее чем за 12 часов до визита."
+  },
+  "assistantSuggestions": [
+    "Когда ближайшее окно?",
+    "Сколько стоит полировка?",
+    "Как найти студию?"
+  ],
+  "pwa": {
+    "shortName": "ОБРАЗЕЦ СТУДИИ",
+    "themeColor": "#4690FF",
+    "backgroundColor": "#000000",
+    "icon": "icon-192.png"
+  }
+}

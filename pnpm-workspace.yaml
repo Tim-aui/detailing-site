@@ -1,0 +1,6 @@
+allowBuilds:
+  "@astryxdesign/core": true
+  "@astryxdesign/cli": true
+  esbuild: true
+  workbox-build: true
+  sharp: true

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Заглушка: работа студии">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B1220"/>
+      <stop offset="55%" stop-color="#132A47"/>
+      <stop offset="100%" stop-color="#1E3A5F"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.72" cy="0.24" r="0.7">
+      <stop offset="0%" stop-color="#4690FF" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#4690FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#g)"/>
+  <rect width="1200" height="900" fill="url(#glow)"/>
+  <g fill="none" stroke="#4690FF" stroke-opacity="0.35" stroke-width="2">
+    <path d="M0 640 C 220 600, 420 690, 640 640 S 1020 590, 1200 630 L1200 900 L0 900 Z"/>
+    <path d="M0 690 C 240 650, 440 740, 660 690 S 1030 645, 1200 685 L1200 900 L0 900 Z" stroke-opacity="0.2"/>
+  </g>
+  <g transform="translate(600 400)">
+    <path d="M-190 60 C-160 -10 -90 -50 10 -54 L 150 -46 C 196 -40 226 0 240 52 L 250 66 L250 86 L-200 86 Z"
+          fill="#0E1A2B" stroke="#4690FF" stroke-opacity="0.75" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M-118 -18 C-70 -46 40 -50 104 -32 L 150 4 L-136 8 Z" fill="#4690FF" fill-opacity="0.22"/>
+    <circle cx="-120" cy="88" r="30" fill="#080D16" stroke="#4690FF" stroke-opacity="0.5" stroke-width="3"/>
+    <circle cx="150" cy="88" r="30" fill="#080D16" stroke="#4690FF" stroke-opacity="0.5" stroke-width="3"/>
+  </g>
+  <text x="60" y="820" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="34" fill="#FFFFFF" fill-opacity="0.92">Пример работы — замените своим фото</text>
+  <text x="60" y="862" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="24" fill="#4690FF">tenants/&lt;студия&gt;/photos/</text>
+</svg>

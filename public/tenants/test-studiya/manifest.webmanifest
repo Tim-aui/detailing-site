@@ -1,0 +1,62 @@
+{
+  "id": "/s/test-studiya/",
+  "name": "ТЕСТ СТУДИЯ — запись",
+  "short_name": "ТЕСТ СТУДИЯ",
+  "description": "Расскажите, как проходит работа и что получает клиент.",
+  "start_url": "/s/test-studiya/",
+  "scope": "/s/test-studiya/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#4690FF",
+  "lang": "ru",
+  "dir": "ltr",
+  "categories": [
+    "business",
+    "lifestyle"
+  ],
+  "icons": [
+    {
+      "src": "/tenants/test-studiya/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/tenants/test-studiya/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/tenants/test-studiya/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Записаться",
+      "short_name": "Запись",
+      "url": "/s/test-studiya/booking",
+      "icons": [
+        {
+          "src": "/tenants/test-studiya/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Моя запись",
+      "short_name": "Моя запись",
+      "url": "/s/test-studiya/my-booking",
+      "icons": [
+        {
+          "src": "/tenants/test-studiya/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

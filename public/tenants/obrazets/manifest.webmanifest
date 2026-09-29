@@ -1,0 +1,64 @@
+{
+  "id": "/s/obrazets/",
+  "name": "ОБРАЗЕЦ СТУДИИ — запись",
+  "short_name": "ОБРАЗЕЦ СТУДИИ",
+  "description": "Расскажите, как проходит работа и что получает клиент.",
+  "start_url": "/s/obrazets/",
+  "scope": "/s/obrazets/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#4690FF",
+  "lang": "ru",
+  "dir": "ltr",
+  "categories": [
+    "business",
+    "lifestyle"
+  ],
+  "icons": [
+    {
+      "src": "/tenants/obrazets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/tenants/obrazets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/tenants/obrazets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Записаться",
+      "short_name": "Запись",
+      "url": "/s/obrazets/booking",
+      "icons": [
+        {
+          "src": "/tenants/obrazets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Моя запись",
+      "short_name": "Моя запись",
+      "url": "/s/obrazets/my-booking",
+      "icons": [
+        {
+          "src": "/tenants/obrazets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "x_sample": true,
+  "branding": "#4690FF"
+}

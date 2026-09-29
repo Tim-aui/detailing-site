@@ -1,0 +1,559 @@
+/*
+ * Собственные стили приложения поверх Astryx.
+ *
+ * Здесь только то, чего в дизайн-системе нет: настоящее стекло
+ * (liquid-gl), параллакс главного фото, безопасные зоны телефона и
+ * плавное появление разделов. Компоненты и токены — из Astryx.
+ */
+
+@layer app {
+  :root {
+    /* Высота нижней панели + запас под «домашнюю» полоску телефона.
+       Контент получает такой же отступ снизу, чтобы панель его
+       никогда не закрывала. */
+    --nav-h: 72px;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: env(safe-area-inset-top, 0px);
+    --page-pad: 20px;
+  }
+
+  html {
+    background: #000;
+    /* Прокрутка всегда от края: на iOS это убирает «резиновую»
+       подсветку и делает нижнюю панель предсказуемой. */
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-background-body, #000);
+    color: var(--color-text-primary, #fff);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Скрываем горизонтальный оверфлоу: стеклянный шейдер не должен
+     вызывать полосу прокрутки по боку. */
+  body {
+    overflow-x: hidden;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  /* ---------- Каркас страницы ---------- */
+
+  .page {
+    /* Нижняя панель лежит поверх, поэтому страница резервирует
+       под неё место. Это гарантирует, что панель ничего не закрывает. */
+    padding-bottom: calc(var(--nav-h) + var(--safe-b) + 16px);
+    min-height: 100dvh;
+  }
+
+  .shell {
+    max-width: 720px;
+    margin-inline: auto;
+    padding-inline: var(--page-pad);
+  }
+
+  @media (min-width: 900px) {
+    :root {
+      --nav-h: 76px;
+      --page-pad: 28px;
+    }
+    .page {
+      padding-bottom: calc(var(--nav-h) + 32px);
+    }
+  }
+
+  /* ---------- Главное фото ---------- */
+
+  .hero {
+    position: relative;
+    /* clip, а не hidden: не создаёт лишний scroll-контейнер,
+       из-за которого ломается position: sticky внутри. */
+    overflow: clip;
+    /* Изолирует слои: соседние разделы не смогут просочиться
+       поверх кнопки и «подмешать» свои буквы. */
+    isolation: isolate;
+    margin-top: calc(var(--safe-t) * -1);
+    padding-top: var(--safe-t);
+    background: #000;
+  }
+
+  .hero__media {
+    position: absolute;
+    inset: -12% 0;
+    z-index: 0;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .hero__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    /* Чуть гасим фото, чтобы белый текст и синяя кнопка читались. */
+    filter: saturate(0.92) brightness(0.72) contrast(1.05);
+  }
+
+  /* Мягкий переход фото в чёрный — стык не «режет» глаза. */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 45%;
+    z-index: 1;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, #000 92%);
+    pointer-events: none;
+  }
+
+  .hero__inner {
+    position: relative;
+    /* Выше фото и его градиента, но ниже кнопки. */
+    z-index: 2;
+    min-height: min(78dvh, 640px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 20px;
+    padding-block: 96px 28px;
+  }
+
+  /* Широкий зелёный(синий) блок CTA. Собственный слой, свой фон под
+     подписью — надпись остаётся чёткой поверх любого фото. */
+  .hero__cta {
+    position: relative;
+    z-index: 3;
+    display: block;
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    text-decoration: none;
+    /* Подложка под текст: гарантирует контраст над фотографией. */
+    background: rgba(70, 144, 255, 0.22);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      0 8px 28px rgba(0, 0, 0, 0.5);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 180ms ease, background-color 180ms ease;
+  }
+
+  .hero__cta:active {
+    transform: scale(0.985);
+  }
+
+  .hero__cta-label {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px 20px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #fff;
+    text-align: center;
+    /* Собственная подложка под буквами: даже если шейдер liquid-gl
+       не запустился, надпись остаётся читаемой. */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  }
+
+  .hero__cta-hint {
+    position: relative;
+    z-index: 2;
+    padding: 0 20px 16px;
+    text-align: center;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.82);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Форма, которую liquid-gl превращает в настоящее стекло.
+     Собственный контейнер: слои шейдера не наезжают на контент. */
+  .glass-surface {
+    position: relative;
+    isolation: isolate;
+    will-change: filter, transform;
+  }
+
+  /* Fallback для браузеров без backdrop-filter. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-surface {
+      background: rgba(20, 20, 24, 0.92) !important;
+    }
+  }
+
+  /* ---------- CTA кнопка записи (выразительная) ---------- */
+
+  .booking-cta-card {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(
+      135deg,
+      rgba(70, 144, 255, 0.18) 0%,
+      rgba(70, 144, 255, 0.06) 60%,
+      transparent 100%
+    );
+    border: 1px solid rgba(70, 144, 255, 0.25);
+    box-shadow:
+      inset 0 1px 0 rgba(70, 144, 255, 0.2),
+      0 12px 40px rgba(70, 144, 255, 0.15);
+  }
+
+  .booking-cta-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      ellipse at 50% -20%,
+      rgba(70, 144, 255, 0.15) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .booking-cta-btn {
+    position: relative;
+    background: linear-gradient(135deg, #4690ff 0%, #2d6bd8 100%) !important;
+    box-shadow:
+      0 4px 20px rgba(70, 144, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+    border: none !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+    transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease !important;
+  }
+
+  .booking-cta-btn:not(:disabled):hover,
+  .booking-cta-btn:not(:disabled):active {
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 28px rgba(70, 144, 255, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    filter: brightness(1.05);
+  }
+
+  .booking-cta-btn:active:not(:disabled) {
+    transform: scale(0.985);
+  }
+
+  .booking-cta-btn:disabled {
+    opacity: 0.55 !important;
+    background: #2a2a30 !important;
+    box-shadow: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .booking-cta-btn {
+      transition: none !important;
+    }
+  }
+
+  /* ---------- Нижняя навигация ---------- */
+
+  .bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: 10px 12px calc(10px + var(--safe-b));
+    pointer-events: none;
+  }
+
+  .bottom-nav__inner {
+    pointer-events: auto;
+    max-width: 560px;
+    margin-inline: auto;
+    border-radius: 22px;
+    isolation: isolate;
+    overflow: clip;
+    background: rgba(14, 14, 18, 0.55);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 10px 30px rgba(0, 0, 0, 0.55);
+  }
+
+  .bottom-nav__list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    padding: 6px;
+  }
+
+  .bottom-nav__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 4px;
+    min-height: 52px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    font-weight: 600;
+    position: relative;
+    z-index: 2;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 160ms ease, background-color 160ms ease;
+  }
+
+  .bottom-nav__link[aria-current='page'] {
+    color: #fff;
+    background: rgba(70, 144, 255, 0.18);
+  }
+
+  /* ---------- Появление разделов при прокрутке ---------- */
+
+  .reveal {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+    transition:
+      opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Человек выключил анимации в системе — уважаем выбор:
+     показываем всё сразу, без движения. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+
+    .hero__media {
+      transform: none !important;
+      will-change: auto;
+    }
+  }
+
+  /* ---------- Прочее ---------- */
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Горизонтальные ленты даты/времени: свайп, без полосы прокрутки. */
+  .h-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .h-scroll > * {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+  }
+
+  .tap {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* ---------- Фильтры-чипсы ---------- */
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.14));
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.72);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .chip[aria-selected='true'],
+  .chip[aria-pressed='true'] {
+    color: #fff;
+    background: rgba(70, 144, 255, 0.2);
+    border-color: rgba(70, 144, 255, 0.55);
+  }
+
+  .chip:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  /* ---------- Выбор даты и времени ---------- */
+
+  .date-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* Убираем внутренний отступ у полосы прокрутки, иначе лента
+       смещается на ширину скроллбара. */
+    padding-bottom: 2px;
+    margin-inline: calc(var(--page-pad) * -1);
+    padding-inline: var(--page-pad);
+  }
+
+  .date-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .date-chip {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 92px;
+    padding: 10px 14px;
+    border-radius: 16px;
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.14));
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.72);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .date-chip[aria-checked='true'] {
+    color: #fff;
+    background: rgba(70, 144, 255, 0.2);
+    border-color: rgba(70, 144, 255, 0.55);
+  }
+
+  .date-chip__day {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .date-chip__count {
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  .slot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: 8px;
+  }
+
+  .slot {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 56px;
+    padding: 10px 8px;
+    border-radius: 14px;
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.14));
+    background: rgba(255, 255, 255, 0.04);
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .slot[aria-checked='true'] {
+    background: var(--color-accent, #4690ff);
+    border-color: transparent;
+    color: #fff;
+  }
+
+  .slot__time {
+    font-size: 16px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .slot__note {
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
+  /* ---------- Помощник ---------- */
+
+  .chat {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* Живой лог: сообщения не должны «прыгать» при появлении. */
+    overflow-anchor: none;
+  }
+
+  .bubble {
+    max-width: 86%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .bubble--user {
+    align-self: flex-end;
+    background: var(--color-accent, #4690ff);
+    color: #fff;
+    border-bottom-right-radius: 6px;
+  }
+
+  .bubble--assistant {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+    border-bottom-left-radius: 6px;
+  }
+
+  /* Поле под телефон: 16px и выше, иначе iOS зумит при фокусе. */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
