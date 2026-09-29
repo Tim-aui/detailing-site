@@ -12,3 +12,5 @@ coverage
 .DS_Store
 src/tenants/generated
 .env*
+supabase/.temp/
+scripts/apply-migrations.mjs
