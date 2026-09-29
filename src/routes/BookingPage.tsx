@@ -266,17 +266,18 @@ export function BookingPage() {
                   </Text>
                 </VStack>
                 <StackItem>
-                  <a
-                    href="#"
+                  <button
+                    type="button"
                     className="booking-cta-btn-hero tap"
-                    onClick={(e) => { e.preventDefault(); submit(); }}
-                    aria-disabled={!canSubmit}
-                    style={{pointerEvents: canSubmit ? 'auto' : 'none', opacity: canSubmit ? 1 : 0.55}}
+                    onClick={submit}
+                    disabled={!canSubmit || create.isPending}
+                    aria-disabled={!canSubmit || create.isPending}
+                    style={{pointerEvents: canSubmit && !create.isPending ? 'auto' : 'none', opacity: canSubmit && !create.isPending ? 1 : 0.55}}
                   >
                     <span className="booking-cta-btn-label">
                       {create.isPending ? 'Записываем…' : 'Записаться'}
                     </span>
-                  </a>
+                  </button>
                 </StackItem>
               </HStack>
               <Text type="supporting" color="disabled">
