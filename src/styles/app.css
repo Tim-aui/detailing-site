@@ -256,7 +256,7 @@
     }
   }
 
-  /* ---------- CTA кнопка записи в стиле hero__cta, но крупнее ---------- */
+  /* ---------- CTA кнопка записи — сплошной цвет, контрастная ---------- */
 
   .booking-cta-btn-hero {
     display: block;
@@ -265,25 +265,31 @@
     border-radius: 18px;
     overflow: hidden;
     text-decoration: none;
-    background: rgba(70, 144, 255, 0.22);
+    background: #4690ff;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.22),
-      0 12px 40px rgba(70, 144, 255, 0.35);
+      0 4px 16px rgba(70, 144, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
     -webkit-tap-highlight-color: transparent;
-    transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+    transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
   }
 
   .booking-cta-btn-hero:not([aria-disabled='true']):hover,
   .booking-cta-btn-hero:not([aria-disabled='true']):active {
     transform: translateY(-2px);
-    background: rgba(70, 144, 255, 0.3);
+    background: #357ae8;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.3),
-      0 16px 48px rgba(70, 144, 255, 0.45);
+      0 8px 24px rgba(70, 144, 255, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
   }
 
   .booking-cta-btn-hero:active:not([aria-disabled='true']) {
     transform: scale(0.985);
+  }
+
+  .booking-cta-btn-hero[aria-disabled='true'] {
+    opacity: 0.55;
+    background: #2a2a30;
+    box-shadow: none;
   }
 
   .booking-cta-btn-label {
@@ -299,7 +305,6 @@
     letter-spacing: -0.01em;
     color: #fff;
     text-align: center;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   }
 
   @media (prefers-reduced-motion: reduce) {
