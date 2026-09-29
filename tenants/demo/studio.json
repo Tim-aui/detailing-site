@@ -99,13 +99,13 @@
     { "id": "box-2", "name": "Бокс 2", "acceptsLongStay": true, "isActive": true },
     { "id": "box-3", "name": "Бокс 3", "acceptsLongStay": false, "isActive": true }
   ],
-  "heroPhoto": "IMG_2030.PNG",
+"heroPhoto": "hero.jpg",
   "logo": null,
   "gallery": [
-    {"id": "g1", "photo": "IMG_2030.PNG", "caption": "Полировка BMW"},
-    {"id": "g2", "photo": "XXXL.webp", "caption": "Керамика"},
-    {"id": "g3", "photo": "XXXL-2.webp", "caption": "Химчистка"},
-    {"id": "g4", "photo": "XXXL-3.webp", "caption": "Детейлинг"}
+    {"id": "g1", "photo": "XXXL.webp", "caption": "Полировка BMW"},
+    {"id": "g2", "photo": "XXXL-2.webp", "caption": "Керамика"},
+    {"id": "g3", "photo": "XXXL-3.webp", "caption": "Химчистка"},
+    {"id": "g4", "photo": "XXXL-4.webp", "caption": "Детейлинг"}
   ],
   "infoCards": [
     {

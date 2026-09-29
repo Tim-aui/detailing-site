@@ -5,15 +5,11 @@ import {useTenantSlug} from '../tenants/TenantContext.tsx';
 const ITEMS = [
   {to: '', label: 'Главная', icon: 'home', end: true},
   {to: 'services', label: 'Услуги', icon: 'services', end: false},
-  {to: 'booking', label: 'Записаться', icon: 'calendar', end: false},
   {to: 'my-booking', label: 'Моя запись', icon: 'clipboard', end: false},
 ] as const;
 
 /**
- * Нижняя навигация: Главная, Услуги, Записаться, Моя запись.
- *
- * Панель закреплена поверх страницы, поэтому сама страница резервирует
- * под неё место (`.page` в app.css) — содержимое не перекрывается.
+ * Нижняя навигация: Главная, Услуги, Моя запись.
  */
 export function BottomNav() {
   const slug = useTenantSlug();

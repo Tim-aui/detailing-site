@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
-import {useSearchParams} from 'react-router-dom';
+import {useNavigate, useSearchParams} from 'react-router-dom';
 import {Heading} from '@astryxdesign/core/Heading';
 import {Text} from '@astryxdesign/core/Text';
 import {VStack, HStack, StackItem, Card, Section} from '@astryxdesign/core/Layout';
@@ -12,7 +12,9 @@ import {useTenant} from '../tenants/TenantContext.tsx';
 import {useBusy} from '../lib/studio.ts';
 import {useCreateBooking} from '../lib/bookings.ts';
 import {freeSlots, groupSlotsByDate, type FreeSlot} from '../lib/schedule.ts';
-import {duration, money, studioDate, studioTime} from '../lib/format.ts';
+import {duration, money, studioDate, studioTime, dayName} from '../lib/format.ts';
+import {formatInTimeZone as fz} from 'date-fns-tz';
+import {ru} from 'date-fns/locale';
 import {IconByName} from '../components/icons.tsx';
 import {AddToCalendarButton} from '../components/AddToCalendarButton.tsx';
 import {LoadingIndicator} from '../components/LoadingIndicator.tsx';
@@ -263,15 +265,17 @@ export function BookingPage() {
                   </Text>
                 </VStack>
                 <StackItem>
-                  <Button
-                    label={create.isPending ? 'Записываем…' : 'Записаться'}
-                    variant="primary"
-                    size="lg"
-                    isDisabled={!canSubmit}
-                    isLoading={create.isPending}
-                    clickAction={submit}
-                    className="booking-cta-btn"
-                  />
+                  <a
+                    href="#"
+                    className="booking-cta-btn-hero tap"
+                    onClick={(e) => { e.preventDefault(); submit(); }}
+                    aria-disabled={!canSubmit}
+                    style={{pointerEvents: canSubmit ? 'auto' : 'none', opacity: canSubmit ? 1 : 0.55}}
+                  >
+                    <span className="booking-cta-btn-label">
+                      {create.isPending ? 'Записываем…' : 'Записаться'}
+                    </span>
+                  </a>
                 </StackItem>
               </HStack>
               <Text type="supporting" color="disabled">
@@ -311,8 +315,15 @@ function BookingDone({
   serviceName: string;
 }) {
   const {settings} = useTenant();
+  const {slug} = useTenant();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }, []);
+
   return (
-    <main className="shell" style={{paddingTop: 8}}>
+    <main className="shell" style={{paddingTop: 8, paddingBottom: 40}}>
       <Section>
         <VStack gap={5} style={{alignItems: 'center', textAlign: 'center'}}>
           <span
@@ -353,8 +364,6 @@ function BookingDone({
             </VStack>
           </Card>
 
-          {/* Уведомления могут быть отключены в системе, поэтому всегда
-              даём запасной путь — файл календаря. */}
           <AddToCalendarButton
             event={{
               uid: code,
@@ -366,6 +375,15 @@ function BookingDone({
               endUtc,
             }}
             filename={`zapis-${code}`}
+          />
+
+          <Button
+            label="На главную"
+            variant="secondary"
+            size="lg"
+            width="100%"
+            clickAction={() => navigate(`/s/${slug}/`)}
+            style={{marginTop: 8}}
           />
         </VStack>
       </Section>
@@ -379,5 +397,9 @@ function isPhone(v: string): boolean {
 
 function dayLabel(date: string, tz: string): string {
   // 2 буквы: пн, вт, ср, чт, пт, сб, вс
-  return studioDate(`${date}T12:00:00Z`, tz, 'EE d MMM');
+  const d = new Date(`${date}T12:00:00Z`);
+  const day = Number(fz(d, tz, 'i', {locale: ru})) % 7;
+  const short = dayName(day);
+  const formatted = fz(d, tz, 'd MMM', {locale: ru});
+  return `${short} ${formatted}`;
 }
