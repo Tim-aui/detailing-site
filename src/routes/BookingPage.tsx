@@ -1,4 +1,5 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import type {BusyBlock} from '../lib/schedule.ts';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import {Heading} from '@astryxdesign/core/Heading';
 import {Text} from '@astryxdesign/core/Text';
@@ -17,6 +18,10 @@ import {ru} from 'date-fns/locale';
 import {IconByName} from '../components/icons.tsx';
 import {AddToCalendarButton} from '../components/AddToCalendarButton.tsx';
 import {LoadingIndicator} from '../components/LoadingIndicator.tsx';
+
+// Стабильная ссылка: `= []` в деструктуризации создаёт новый массив на
+// каждый рендер, из-за чего пересчитывались слоты и сбрасывалось время.
+const NO_BUSY: BusyBlock[] = [];
 
 /**
  * Запись: услуга → дата → время → контакты.
@@ -39,7 +44,22 @@ export function BookingPage() {
         .sort((a, b) => Number(b.isPopular) - Number(a.isPopular) || a.name.localeCompare(b.name, 'ru')),
     [settings],
   );
-  const [serviceId, setServiceId] = useState(params.get('service') ?? services[0]?.id ?? '');
+  // Единственный источник правды — адрес (?service=...). Раньше было два
+  // (useState + URL) и два эффекта, которые перетирали друг друга:
+  // выбор в списке тут же откатывался на старое значение из адреса.
+  const serviceId = params.get('service') ?? services[0]?.id ?? '';
+  const setServiceId = useCallback(
+    (id: string) =>
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('service', id);
+          return next;
+        },
+        {replace: true},
+      ),
+    [setParams],
+  );
   const [date, setDate] = useState<string | null>(null);
   const [slot, setSlot] = useState<FreeSlot | null>(null);
 
@@ -50,7 +70,7 @@ export function BookingPage() {
   const [touched, setTouched] = useState(false);
 
   const service = services.find((s) => s.id === serviceId) ?? services[0];
-  const {data: busy = [], isPending} = useBusy(slug, settings?.bookingHorizonDays ?? 30);
+  const {data: busy = NO_BUSY, isPending} = useBusy(slug, settings?.bookingHorizonDays ?? 30);
 
   const slots = useMemo<FreeSlot[]>(
     () => (service ? freeSlots(settings!, service, {busy}) : []),
@@ -58,21 +78,19 @@ export function BookingPage() {
   );
   const byDate = useMemo(() => groupSlotsByDate(slots), [slots]);
 
-  // Услугу можно прийти сразу с карточки — синхронизируем адрес и выбор.
-  useEffect(() => {
-    const fromUrl = params.get('service');
-    if (fromUrl && fromUrl !== serviceId) setServiceId(fromUrl);
-  }, [params, serviceId]);
-
-  useEffect(() => {
-    if (serviceId) setParams((p) => ({...Object.fromEntries(p), service: serviceId}), {replace: true});
-  }, [serviceId, setParams]);
-
-  // Смена услуги или даты сбрасывает выбранное время: оно belonged старой услуге.
+  // Смена услуги сбрасывает выбранное время: оно относилось к старой услуге.
   useEffect(() => {
     setSlot(null);
-    if (date && !byDate.some((d) => d.date === date)) setDate(byDate[0]?.date ?? null);
-  }, [serviceId, byDate, date]);
+  }, [serviceId]);
+
+  // Выбранная дата пропала из списка (другая услуга, кто-то занял окна) —
+  // переключаемся на первую доступную.
+  useEffect(() => {
+    if (date && !byDate.some((d) => d.date === date)) {
+      setDate(byDate[0]?.date ?? null);
+      setSlot(null);
+    }
+  }, [byDate, date]);
 
   useEffect(() => {
     if (date === null && byDate.length > 0) setDate(byDate[0].date);
@@ -134,7 +152,7 @@ export function BookingPage() {
                 1. Услуга
               </Text>
               <select
-                value={serviceId}
+                value={service.id}
                 onChange={(e) => setServiceId(e.target.value)}
                 className="service-select"
                 aria-label="Выберите услугу"

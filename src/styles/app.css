@@ -122,55 +122,92 @@
     padding-block: 96px 28px;
   }
 
-  /* Широкий CTA. Сплошной брендовый цвет — читаемо на любом фото. */
+  /* Широкий CTA: слева текст в две строки, справа круглая «стрелка».
+     Сплошной брендовый цвет — читаемо на любом фото. */
   .hero__cta {
     position: relative;
     z-index: 3;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
     width: 100%;
-    border-radius: 18px;
-    overflow: hidden;
+    min-height: 68px;
+    padding: 12px 12px 12px 22px;
+    border-radius: 20px;
     text-decoration: none;
-    background: #4690ff;
+    color: #fff;
+    background: linear-gradient(180deg, #5a9dff 0%, #3b82f6 100%);
     box-shadow:
-      0 4px 16px rgba(70, 144, 255, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      0 10px 30px -8px rgba(59, 130, 246, 0.65),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.12);
     -webkit-tap-highlight-color: transparent;
-    transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+    transition:
+      transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 160ms ease,
+      filter 160ms ease;
   }
 
-  .hero__cta:hover,
+  @media (hover: hover) {
+    .hero__cta:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+      box-shadow:
+        0 16px 36px -8px rgba(59, 130, 246, 0.75),
+        inset 0 1px 0 rgba(255, 255, 255, 0.32),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+    }
+    .hero__cta:hover .hero__cta-icon {
+      transform: translateX(3px);
+    }
+  }
+
   .hero__cta:active {
-    transform: translateY(-2px);
-    background: #357ae8;
-    box-shadow:
-      0 8px 24px rgba(70, 144, 255, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transform: scale(0.98);
+    filter: brightness(0.96);
+  }
+
+  .hero__cta:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.9);
+    outline-offset: 3px;
+  }
+
+  .hero__cta-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
   }
 
   .hero__cta-label {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 22px 24px;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
+    line-height: 1.2;
     letter-spacing: -0.01em;
-    color: #fff;
-    text-align: center;
   }
 
   .hero__cta-hint {
-    position: relative;
-    z-index: 2;
-    padding: 0 20px 16px;
-    text-align: center;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.82);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hero__cta-icon {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #fff;
+    color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /* Форма, которую liquid-gl превращает в настоящее стекло.
@@ -332,7 +369,11 @@
     border-radius: 22px;
     isolation: isolate;
     overflow: clip;
-    background: rgba(14, 14, 18, 0.55);
+    /* Стекло без WebGL: размытие того, что под панелью. */
+    background: rgba(18, 18, 22, 0.62);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.14),
       0 10px 30px rgba(0, 0, 0, 0.55);
@@ -362,6 +403,12 @@
     z-index: 2;
     -webkit-tap-highlight-color: transparent;
     transition: color 160ms ease, background-color 160ms ease;
+  }
+
+  /* Явно, а не по наследству: у .bottom-nav стоит pointer-events:none,
+     чтобы пустые поля вокруг панели не перехватывали клики. */
+  .bottom-nav__link {
+    pointer-events: auto;
   }
 
   .bottom-nav__link[aria-current='page'] {

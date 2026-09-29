@@ -12,6 +12,9 @@ import {AssistantTeaser} from '../components/AssistantTeaser.tsx';
 import {useMemo} from 'react';
 import {freeSlots} from '../lib/schedule.ts';
 import {useBusy} from '../lib/studio.ts';
+import type {BusyBlock} from '../lib/schedule.ts';
+
+const NO_BUSY: BusyBlock[] = [];
 
 /**
  * Главная страница студии.
@@ -25,7 +28,7 @@ export function HomePage() {
   const navigate = useNavigate();
   const mediaRef = useParallax(0.16);
   const cfg = settings;
-  const {data: busy = []} = useBusy(slug, cfg?.bookingHorizonDays ?? 30);
+  const {data: busy = NO_BUSY} = useBusy(slug, cfg?.bookingHorizonDays ?? 30);
 
   const services = useMemo(
     () => (cfg?.services ?? []).filter((s) => s.isActive).sort((a, b) => Number(b.isPopular) - Number(a.isPopular)),
@@ -58,11 +61,14 @@ export function HomePage() {
 
         <div className="shell hero__inner">
           <VStack gap={3}>
-            {isOpenNow(cfg) ? (
-              <Badge variant="success" label="Открыто сейчас" />
-            ) : (
-              <Badge variant="neutral" label="Сейчас закрыто" />
-            )}
+            {/* Обёртка не даёт бейджу растянуться на всю ширину VStack. */}
+            <div style={{alignSelf: 'flex-start'}}>
+              {isOpenNow(cfg) ? (
+                <Badge variant="success" label="Открыто сейчас" />
+              ) : (
+                <Badge variant="neutral" label="Сейчас закрыто" />
+              )}
+            </div>
             <Heading level={1} type="display-2" textWrap="balance">
               {cfg.name}
             </Heading>
@@ -73,12 +79,17 @@ export function HomePage() {
             ) : null}
           </VStack>
 
-          <Link to={`/s/${slug}/booking`} className="hero__cta tap" aria-label="Записаться в студию">
-            <span className="hero__cta-label">Записаться</span>
-            <span className="hero__cta-hint">
-              {nextFree
-                ? `Ближайшее окно: ${studioDate(nextFree.startUtc, cfg.timezone)}, ${studioTime(nextFree.startUtc, cfg.timezone)}`
-                : 'Выберите удобное время'}
+          <Link to={`/s/${slug}/booking`} className="hero__cta tap">
+            <span className="hero__cta-text">
+              <span className="hero__cta-label">Записаться онлайн</span>
+              <span className="hero__cta-hint">
+                {nextFree
+                  ? `Ближайшее окно: ${studioDate(nextFree.startUtc, cfg.timezone)}, ${studioTime(nextFree.startUtc, cfg.timezone)}`
+                  : 'Выберите удобное время'}
+              </span>
+            </span>
+            <span className="hero__cta-icon" aria-hidden>
+              <IconByName name="arrow" size={22} weight="bold" />
             </span>
           </Link>
         </div>

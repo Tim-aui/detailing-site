@@ -5,7 +5,6 @@ import {ToastViewport, useToast} from '@astryxdesign/core/Toast';
 import {BottomNav} from '../components/BottomNav.tsx';
 import {LoadingIndicator} from '../components/LoadingIndicator.tsx';
 import {StudioIsSample, StudioNotFound} from '../components/StudioNotFound.tsx';
-import {useLiquidGlass} from '../lib/useLiquidGlass.ts';
 import {seedFor, useStudio} from '../lib/studio.ts';
 import {useSlugParam} from '../tenants/TenantContext.tsx';
 import {TenantProvider} from '../tenants/TenantContext.tsx';
@@ -26,8 +25,10 @@ export function TenantLayout() {
 
   useTenantBranding();
 
-  // Стекло на нижней панели и на кнопке в первом экране.
-  useLiquidGlass(useMemo(() => ['.bottom-nav__inner', '.hero__cta'], []));
+  // liquid-gl здесь больше не подключаем: библиотека ставит целевым
+  // элементам pointer-events:none, opacity:0 и background:transparent,
+  // из-за чего навбар не кликался, а кнопка записи превращалась в мутное
+  // пятно. Стекло на панели — обычный backdrop-filter (см. app.css).
 
   // Переход между страницами одной студии возвращает наверх.
   useEffect(() => {
