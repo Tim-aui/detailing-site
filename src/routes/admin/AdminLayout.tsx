@@ -22,7 +22,6 @@ const TABS = [
   {value: '', label: 'Записи'},
   {value: 'money', label: 'Деньги'},
   {value: 'settings', label: 'Настройки'},
-  {value: 'assistant', label: 'Помощник'},
 ];
 
 /**

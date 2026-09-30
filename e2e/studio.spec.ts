@@ -170,15 +170,6 @@ test('владелец меняет подпись и фото одной кар
   await expect(page.getByText(newCaption)).toBeVisible();
 });
 
-test('помощник владельца отвечает по записям и деньгам', async ({page}) => {
-  await page.goto(`/s/${SLUG}/admin/assistant`);
-  await login(page);
-  await page.getByLabel('Ваш вопрос').fill('Сколько денег получено?');
-  await page.getByRole('button', {name: 'Спросить'}).click();
-  await expect(page.getByRole('log', {name: 'Сообщения с помощником'})).toContainText(/получено/i);
-  await shot(page, '09-owner-assistant');
-});
-
 test('устанавливается: манифест студии и service worker', async ({page, request}) => {
   await page.goto(`/s/${SLUG}/`);
   await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', `/tenants/${SLUG}/manifest.webmanifest`);

@@ -137,6 +137,24 @@ pnpm tenant:verify   --slug moya-studiya --url https://<сайт> --assistant
 главное фото, 3 карточки и фото работ. Эти правки хранятся в базе
 (`tenant_settings.patch`) и не затираются повторным `tenant:push`.
 
+### Пароль и почта владельца
+
+```bash
+# новый пароль (старый перестаёт работать сразу)
+pnpm tenant:owner --slug moya-studiya --email owner@mail.ru --password 'Новый-пароль-2026'
+# новая почта для входа (записи, настройки и доступ сохраняются)
+pnpm tenant:owner --slug moya-studiya --email owner@mail.ru --new-email novaya@mail.ru
+# почта и пароль разом
+pnpm tenant:owner --slug moya-studiya --email owner@mail.ru --new-email novaya@mail.ru --password 'Новый-пароль-2026'
+# второй вход (менеджер) и отключение доступа
+pnpm tenant:owner --slug moya-studiya --email manager@mail.ru --role manager
+pnpm tenant:owner --slug moya-studiya --email manager@mail.ru --remove
+```
+
+Нужен `SUPABASE_SERVICE_ROLE_KEY` в `.env.local`. Письма не отправляются,
+подтверждать почту не нужно. Владельцу, который уже вошёл, после смены
+пароля или почты надо войти заново.
+
 ## 6. Проверка базы локально (без Docker)
 
 `supabase/tests/run.sh` создаёт базу `studio_test` в локальном

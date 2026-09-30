@@ -4,6 +4,7 @@
  *   pnpm tenant:owner --slug moya-studiya --email owner@mail.ru
  *   pnpm tenant:owner --slug moya-studiya --email owner@mail.ru --password 'Секрет-123'
  *   pnpm tenant:owner --slug moya-studiya --email manager@mail.ru --role manager
+ *   pnpm tenant:owner --slug moya-studiya --email owner@mail.ru --new-email novaya@mail.ru
  *   pnpm tenant:owner --slug moya-studiya --email owner@mail.ru --remove
  *
  * Без --password создаётся случайный пароль и печатается один раз —
@@ -43,6 +44,23 @@ async function main() {
     const {error} = await supabase.from('tenant_members').delete().eq('tenant_slug', slug).eq('user_id', user.id);
     if (error) throw new Error(`❌ ${error.message}`);
     return console.log(`✓ ${email} больше не имеет доступа к «${tenant.name}»`);
+  }
+
+  // Смена почты: тот же пользователь и доступ, записи и настройки не трогаются.
+  const newEmail = flag('new-email', argv)?.trim().toLowerCase();
+  if (newEmail) {
+    if (!user) throw new Error(`❌ ${email} не найден — нечего менять`);
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(newEmail)) throw new Error(`❌ Похоже, почта с ошибкой: ${newEmail}`);
+    const {error} = await supabase.auth.admin.updateUserById(user.id, {email: newEmail, email_confirm: true});
+    if (error) throw new Error(`❌ Не удалось сменить почту: ${error.message}`);
+    console.log(`✓ Почта для входа в «${tenant.name}»: ${email} → ${newEmail}`);
+    const pw = flag('password', argv);
+    if (pw) {
+      const {error: pErr} = await supabase.auth.admin.updateUserById(user.id, {password: pw});
+      if (pErr) throw new Error(`❌ Почта сменилась, а пароль нет: ${pErr.message}`);
+      console.log('✓ Пароль тоже изменён');
+    } else console.log('  Пароль прежний');
+    return;
   }
 
   let password = flag('password', argv);
