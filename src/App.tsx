@@ -16,6 +16,7 @@ const ServicesPage = lazy(() => import('./routes/ServicesPage.tsx').then((m) => 
 const BookingPage = lazy(() => import('./routes/BookingPage.tsx').then((m) => ({default: m.BookingPage})));
 const MyBookingPage = lazy(() => import('./routes/MyBookingPage.tsx').then((m) => ({default: m.MyBookingPage})));
 const AdminApp = lazy(() => import('./routes/admin/AdminApp.tsx'));
+const PrivacyPage = lazy(() => import('./routes/PrivacyPage.tsx').then((m) => ({default: m.PrivacyPage})));
 const AssistantPage = lazy(() => import('./routes/AssistantPage.tsx').then((m) => ({default: m.AssistantPage})));
 
 /**
@@ -68,6 +69,14 @@ export function App() {
           element={
             <Suspense fallback={<LoadingIndicator label="Подключаем помощника" />}>
               <AssistantPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="privacy"
+          element={
+            <Suspense fallback={<LoadingIndicator label="Загружаем" />}>
+              <PrivacyPage />
             </Suspense>
           }
         />

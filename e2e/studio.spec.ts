@@ -49,6 +49,10 @@ test('клиент записывается: услуга → дата → св�
   await page.getByLabel(/Как к вам обращаться/).fill(clientName);
   await page.getByLabel(/^Телефон/).fill('+7 918 555-44-33');
   await page.getByLabel(/^Автомобиль/).fill('Toyota Camry');
+  // Без согласия кнопка неактивна и есть подсказка.
+  await expect(page.getByText('Отметьте согласие на обработку персональных данных')).toBeVisible();
+  await expect(page.getByRole('button', {name: 'Записаться', exact: true})).toBeDisabled();
+  await page.getByLabel('Согласен на обработку персональных данных').check();
   await shot(page, '02-booking-form');
   await page.getByRole('button', {name: 'Записаться', exact: true}).click();
 
@@ -56,6 +60,14 @@ test('клиент записывается: услуга → дата → св�
   // Напоминание: push, а где его нет — календарь.
   await expect(page.getByRole('button', {name: /Напомнить за день|Добавить в календарь/}).first()).toBeVisible();
   await shot(page, '03-booked');
+});
+
+test('согласие ведёт на политику с реквизитами студии', async ({page}) => {
+  await page.goto(`/s/${SLUG}/booking`);
+  await page.getByRole('link', {name: 'Политика обработки данных'}).click();
+  await expect(page.getByRole('heading', {name: 'Политика обработки персональных данных'})).toBeVisible();
+  await expect(page.getByText(studio.name).first()).toBeVisible();
+  await expect(page.getByText(studio.phone).first()).toBeVisible();
 });
 
 test('занятое время видно и недоступно', async ({page}) => {

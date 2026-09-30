@@ -7,7 +7,7 @@ import {Badge} from '@astryxdesign/core/Badge';
 import {Reveal, useParallax} from '../lib/motion.tsx';
 import {useTenant} from '../tenants/TenantContext.tsx';
 import {IconByName, ServiceIcon} from '../components/icons.tsx';
-import {money, duration, hoursLabel, dayName, isOpenNow, mapLink, studioDate, studioTime} from '../lib/format.ts';
+import {money, duration, hoursLabel, dayName, isOpenNow, mapLink, studioDay, studioTime} from '../lib/format.ts';
 import {AssistantTeaser} from '../components/AssistantTeaser.tsx';
 import {useMemo} from 'react';
 import {freeSlots} from '../lib/schedule.ts';
@@ -86,7 +86,7 @@ export function HomePage() {
               <span className="hero__cta-label">Записаться онлайн</span>
               <span className="hero__cta-hint">
                 {nextFree
-                  ? `Ближайшее окно: ${studioDate(nextFree.startUtc, cfg.timezone)}, ${studioTime(nextFree.startUtc, cfg.timezone)}`
+                  ? `Ближайшее окно: ${studioDay(nextFree.startUtc, cfg.timezone)}, ${studioTime(nextFree.startUtc, cfg.timezone)}`
                   : 'Выберите удобное время'}
               </span>
             </span>

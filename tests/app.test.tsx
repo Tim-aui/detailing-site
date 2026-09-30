@@ -115,6 +115,7 @@ describe('Запись', () => {
     await user.click(times[0]);
     await user.type(screen.getByLabelText(/Как к вам обращаться/), 'Иван');
     await user.type(screen.getByLabelText(/^Телефон/), '+7 916 123-45-67');
+    await user.click(screen.getByLabelText('Согласен на обработку персональных данных'));
 
     const submit = screen.getByRole('button', {name: 'Записаться'});
     await waitFor(() => expect(submit).toBeEnabled());
@@ -123,6 +124,21 @@ describe('Запись', () => {
     // Без базы запись сохраняется локально, но экран успеха одинаковый.
     expect(await screen.findByRole('heading', {name: 'Вы записаны'})).toBeInTheDocument();
     expect(screen.getByRole('button', {name: 'Добавить в календарь'})).toBeInTheDocument();
+  });
+
+  it('не пускает без согласия на обработку данных', async () => {
+    const user = userEvent.setup();
+    renderAt('/s/demo/booking');
+    const times = await screen.findAllByRole('radio', {name: /^\d{2}:\d{2}/}, {timeout: 5000});
+    await user.click(times[0]);
+    await user.type(screen.getByLabelText(/Как к вам обращаться/), 'Иван');
+    await user.type(screen.getByLabelText(/^Телефон/), '+7 916 123-45-67');
+
+    const submit = screen.getByRole('button', {name: 'Записаться'});
+    expect(submit).toBeDisabled();
+    expect(screen.getByText('Отметьте согласие на обработку персональных данных')).toBeInTheDocument();
+    await user.click(screen.getByLabelText('Согласен на обработку персональных данных'));
+    await waitFor(() => expect(submit).toBeEnabled());
   });
 
   it('не пускает без телефона и показывает ошибку', async () => {
@@ -146,6 +162,7 @@ describe('Моя запись', () => {
     await user.click(times[0]);
     await user.type(screen.getByLabelText(/Как к вам обращаться/), 'Иван');
     await user.type(screen.getByLabelText(/^Телефон/), '+7 916 123-45-67');
+    await user.click(screen.getByLabelText('Согласен на обработку персональных данных'));
     await user.click(await screen.findByRole('button', {name: 'Записаться'}));
 
     renderAt('/s/demo/my-booking');

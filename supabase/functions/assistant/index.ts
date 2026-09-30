@@ -362,7 +362,7 @@ class Tools {
     const fnName = name === 'get_bookings' ? 'owner_bookings' : name === 'get_stats' ? 'owner_stats' : 'owner_payments';
     const {data, error} = await this.owner!.rpc(fnName, params);
     if (error) return {error: error.message};
-    const t = (iso: string) => formatInTimeZone(new Date(iso), this.tz, 'EEE d MMM HH:mm', {locale: ru});
+    const t = (iso: string) => formatInTimeZone(new Date(iso), this.tz, 'EEEEEE d MMM HH:mm', {locale: ru});
     if (name === 'get_stats') {
       const s = data as Record<string, number>;
       return {

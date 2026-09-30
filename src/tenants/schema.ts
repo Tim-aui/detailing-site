@@ -148,6 +148,22 @@ export const studioSettingsSchema = z.object({
   /** Подсказки-промпты для помощника на главной. */
   assistantSuggestions: z.array(z.string().min(1)).min(1).max(4),
 
+  /**
+   * Кто отвечает за персональные данные клиентов (оператор по 152-ФЗ).
+   * Показывается в политике /s/<slug>/privacy. Пустые поля не выводятся,
+   * вместо пустого operator берётся название студии.
+   */
+  legal: z
+    .object({
+      /** «ИП Иванов Иван Иванович» или «ООО „Ромашка“». */
+      operator: z.string().default(''),
+      inn: z.string().default(''),
+      ogrn: z.string().default(''),
+      /** Почта для запросов об удалении данных. */
+      email: z.string().default(''),
+    })
+    .prefault({}),
+
   pwa: z
     .object({
       shortName: z.string().default(''),

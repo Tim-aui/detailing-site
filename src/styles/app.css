@@ -779,3 +779,13 @@
     background: rgba(255, 255, 255, 0.04);
   }
 }
+
+/* Ссылка внутри текста: подпись под галочкой согласия, политика. */
+.text-link {
+  color: #4690ff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.text-link:hover {
+  color: #6aa6ff;
+}

@@ -1,12 +1,13 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {BusyBlock} from '../lib/schedule.ts';
-import {useNavigate, useSearchParams} from 'react-router-dom';
+import {Link, useNavigate, useSearchParams} from 'react-router-dom';
 import {Heading} from '@astryxdesign/core/Heading';
 import {Text} from '@astryxdesign/core/Text';
 import {VStack, HStack, StackItem, Card, Section} from '@astryxdesign/core/Layout';
 import {Button} from '@astryxdesign/core/Button';
 import {TextInput} from '@astryxdesign/core/TextInput';
 import {TextArea} from '@astryxdesign/core/TextArea';
+import {CheckboxInput} from '@astryxdesign/core/CheckboxInput';
 import {useToast} from '@astryxdesign/core/Toast';
 import {useTenant} from '../tenants/TenantContext.tsx';
 import {useBusy} from '../lib/studio.ts';
@@ -68,6 +69,8 @@ export function BookingPage() {
   const [car, setCar] = useState(() => localStorage.getItem('studio:car') ?? '');
   const [comment, setComment] = useState('');
   const [touched, setTouched] = useState(false);
+  // Согласие даётся на каждую запись заново и нигде не запоминается.
+  const [consent, setConsent] = useState(false);
 
   const service = services.find((s) => s.id === serviceId) ?? services[0];
   const {data: busy = NO_BUSY, isPending} = useBusy(slug, settings?.bookingHorizonDays ?? 30);
@@ -107,7 +110,19 @@ export function BookingPage() {
 
   const nameError = touched && name.trim().length < 2 ? 'Как к вам обращаться?' : undefined;
   const phoneError = touched && !isPhone(phone) ? 'Нужен телефон, чтобы подтвердить запись' : undefined;
-  const canSubmit = Boolean(service && slot && name.trim().length >= 2 && isPhone(phone));
+  const consentError = touched && !consent ? 'Без согласия студия не сможет принять запись' : undefined;
+  const canSubmit = Boolean(service && slot && name.trim().length >= 2 && isPhone(phone) && consent);
+
+  // Кнопка неактивна, пока форма не заполнена, поэтому подсказываем, чего не хватает.
+  const missing = !slot
+    ? 'Выберите время'
+    : name.trim().length < 2
+      ? 'Укажите, как к вам обращаться'
+      : !isPhone(phone)
+        ? 'Укажите телефон'
+        : !consent
+          ? 'Отметьте согласие на обработку персональных данных'
+          : null;
 
   if (!settings || !service) return null;
 
@@ -295,6 +310,20 @@ export function BookingPage() {
                 placeholder="Например: нужно убрать битую плёнку с капота"
                 size="sm"
               />
+              <VStack gap={1}>
+                <CheckboxInput
+                  label="Согласен на обработку персональных данных"
+                  value={consent}
+                  onChange={(checked) => setConsent(checked)}
+                  status={consentError ? {type: 'error', message: consentError} : undefined}
+                />
+                <Text type="supporting" color="secondary">
+                  Имя, телефон и автомобиль нужны только для записи.{' '}
+                  <Link to={`/s/${slug}/privacy`} className="text-link">
+                    Политика обработки данных
+                  </Link>
+                </Text>
+              </VStack>
             </VStack>
           </Card>
 
@@ -324,6 +353,11 @@ export function BookingPage() {
                   </button>
                 </StackItem>
               </HStack>
+              {missing ? (
+                <Text type="supporting" color="secondary">
+                  {missing}
+                </Text>
+              ) : null}
               <Text type="supporting" color="disabled">
                 Итоговую сумму студия подтвердит по телефону. Предоплата не требуется.
               </Text>

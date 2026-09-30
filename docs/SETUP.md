@@ -97,7 +97,8 @@ npx vercel --prod
 ```bash
 pnpm tenant:new --slug moya-studiya --name "Моя студия"   # папка-образец
 # 1) правим tenants/moya-studiya/studio.json: название, телефон, адрес,
-#    часы, услуги (цена в копейках), боксы, 3 карточки
+#    часы, услуги (цена в копейках), боксы, 3 карточки,
+#    legal: operator («ИП Иванов И. И.»), inn, email — для политики /s/<slug>/privacy
 # 2) кладём фото в tenants/moya-studiya/photos/ (hero + работы)
 pnpm tenant:validate --slug moya-studiya     # схема, фото, услуги, боксы
 pnpm tenant:publish  --slug moya-studiya     # снимает метку образца

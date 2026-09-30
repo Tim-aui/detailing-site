@@ -40,8 +40,24 @@ export function duration(min: number, days = 1): string {
 }
 
 /** Дата в часовом поясе студии: «пн, 2 марта». */
-export function studioDate(iso: string, tz: string, pattern = 'EEE, d MMM'): string {
+// В русской локали date-fns формат EEE даёт «птн», «срд», поэтому для
+// короткого дня недели берём EEEEEE, он даёт «пт», «ср».
+export function studioDate(iso: string, tz: string, pattern = 'EEEEEE, d MMMM'): string {
   return fz(new Date(iso), tz, pattern, {locale: ru});
+}
+
+/**
+ * «сегодня», «завтра», «послезавтра», дальше «пт, 2 октября».
+ * Дни считаются по календарю студии, а не по часам телефона.
+ */
+export function studioDay(iso: string, tz: string, now: Date = new Date()): string {
+  const day = fz(new Date(iso), tz, 'yyyy-MM-dd');
+  const today = fz(now, tz, 'yyyy-MM-dd');
+  const diff = Math.round((Date.parse(`${day}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
+  if (diff === 0) return 'сегодня';
+  if (diff === 1) return 'завтра';
+  if (diff === 2) return 'послезавтра';
+  return studioDate(iso, tz);
 }
 
 export function studioTime(iso: string, tz: string): string {
