@@ -9,6 +9,7 @@ import {useTenant} from '../tenants/TenantContext.tsx';
 import {IconByName, ServiceIcon} from '../components/icons.tsx';
 import {money, duration, hoursLabel, dayName, isOpenNow, mapLink, studioDay, studioTime} from '../lib/format.ts';
 import {AssistantTeaser} from '../components/AssistantTeaser.tsx';
+import {StudioFaq} from '../components/StudioFaq.tsx';
 import {useMemo} from 'react';
 import {freeSlots} from '../lib/schedule.ts';
 import {useBusy} from '../lib/studio.ts';
@@ -44,7 +45,10 @@ export function HomePage() {
   const nextFree = useMemo(() => {
     if (!cfg) return null;
     const all = services.flatMap((service) =>
-      freeSlots(cfg, service, {busy, horizonDays: cfg.bookingHorizonDays, now: new Date()}),
+      freeSlots(cfg, service, {busy, horizonDays: cfg.bookingHorizonDays, now: new Date()}).map((slot) => ({
+        ...slot,
+        serviceId: service.id,
+      })),
     );
     if (all.length === 0) return null;
     return all.sort((a, b) => a.startUtc.localeCompare(b.startUtc))[0];
@@ -271,10 +275,17 @@ export function HomePage() {
           </Reveal>
         ) : null}
 
-        {/* Помощник */}
+        {/* Частые вопросы: ответы из настроек студии, без ИИ */}
         <Reveal as="section" className="shell">
-          <AssistantTeaser />
+          <StudioFaq slug={slug} cfg={cfg} nextFree={nextFree} />
         </Reveal>
+
+        {/* ИИ-помощник — только если включён в studio.json (assistantEnabled) */}
+        {cfg.assistantEnabled ? (
+          <Reveal as="section" className="shell">
+            <AssistantTeaser />
+          </Reveal>
+        ) : null}
 
         {/* Адрес и часы */}
         <Reveal as="section" className="shell">

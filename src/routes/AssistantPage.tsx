@@ -1,4 +1,4 @@
-import {useSearchParams} from 'react-router-dom';
+import {Navigate, useSearchParams} from 'react-router-dom';
 import {Heading} from '@astryxdesign/core/Heading';
 import {Text} from '@astryxdesign/core/Text';
 import {VStack, Section} from '@astryxdesign/core/Layout';
@@ -13,8 +13,10 @@ import {AssistantChat} from '../components/AssistantChat.tsx';
  * вопросов. На клиенте ничего не вычисляется и не подсказывается модели.
  */
 export function AssistantPage() {
-  const {settings} = useTenant();
+  const {slug, settings} = useTenant();
   const [params] = useSearchParams();
+  // Помощник выключен в studio.json — старые ссылки ведут на главную.
+  if (settings && !settings.assistantEnabled) return <Navigate to={`/s/${slug}/`} replace />;
 
   return (
     <main className="shell" style={{paddingTop: 8}}>

@@ -195,25 +195,25 @@
     {
       "id": "g1",
       "photo": "XXXL.webp",
-      "caption": "Полировка кузова",
+      "caption": "Toyota Land Cruiser 200: кузов в глубоком блеске после детейлинга",
       "order": 1
     },
     {
       "id": "g2",
       "photo": "XXXL-2.webp",
-      "caption": "Керамика",
+      "caption": "BMW 5 серии: проверяем лак под контрольным светом",
       "order": 2
     },
     {
       "id": "g3",
       "photo": "XXXL-3.webp",
-      "caption": "Химчистка салона",
+      "caption": "Полируем колёсные диски вручную",
       "order": 3
     },
     {
       "id": "g4",
       "photo": "XXXL-4.webp",
-      "caption": "Детейлинг",
+      "caption": "Химчистка кожаного салона: до и после",
       "order": 4
     }
   ],
@@ -241,6 +241,7 @@
     "freeCancelHours": 12,
     "note": "Отменить или перенести запись без штрафа можно не позднее чем за 12 часов до визита."
   },
+  "assistantEnabled": false,
   "assistantSuggestions": [
     "Когда ближайшее окно?",
     "Сколько стоит полировка?",

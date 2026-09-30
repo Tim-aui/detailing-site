@@ -55,6 +55,7 @@ type Cfg = {
   services: {id: string; name: string; description?: string; price: number; durationMin: number; days?: number; isActive?: boolean}[];
   cancellation?: {freeCancelHours?: number; note?: string};
   bookingHorizonDays?: number;
+  assistantEnabled?: boolean;
 };
 
 Deno.serve(async (req) => {
@@ -104,6 +105,9 @@ Deno.serve(async (req) => {
       if (allowed !== true) return json({error: 'Нет доступа к этой студии'}, 403);
       actor = `owner:${userData.user.id}`;
     } else {
+      // Помощник для клиентов включается в studio.json. Выключен — не тратим
+      // модель, даже если кто-то вызовет функцию напрямую.
+      if (config.assistantEnabled !== true) return json({error: 'Помощник отключён в этой студии'}, 403);
       // Клиента узнаём по IP (хешем: сам адрес не храним). Телефон из
       // запроса подделать проще, поэтому лимит по нему не считаем.
       const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';

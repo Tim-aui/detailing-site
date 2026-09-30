@@ -145,6 +145,13 @@ export const studioSettingsSchema = z.object({
     })
     .prefault({}),
 
+  /**
+   * ИИ-помощник для клиентов на главной и /assistant. По умолчанию выключен:
+   * вместо него «Частые вопросы» с ответами из настроек. Включается только
+   * в файле студии; помощник в кабинете владельца работает всегда.
+   */
+  assistantEnabled: z.boolean().default(false),
+
   /** Подсказки-промпты для помощника на главной. */
   assistantSuggestions: z.array(z.string().min(1)).min(1).max(4),
 

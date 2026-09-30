@@ -92,6 +92,19 @@ async function verify() {
         body: JSON.stringify(body),
       });
 
+    // База через сам сайт (/sb → Supabase, см. vercel.json). Так её видит браузер
+    // клиента, если VITE_SUPABASE_URL=/sb: supabase.co ему напрямую не нужен.
+    const viaSite = await get(`${site}/sb/rest/v1/rpc/studio_patch`, {
+      method: 'POST',
+      headers: {apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json'},
+      body: JSON.stringify({p_tenant_slug: slug}),
+    });
+    push(
+      viaSite.ok,
+      'База через сайт (/sb)',
+      viaSite.ok ? `${site}/sb/ → Supabase работает` : `HTTP ${viaSite.status} — проверьте rewrite /sb в vercel.json`,
+    );
+
     const pr = await rpc('studio_patch', {p_tenant_slug: slug});
     const patch = pr.ok ? await pr.json() : null;
     push(pr.ok, 'Студия опубликована в базе', pr.ok ? 'посетитель видит настройки' : `HTTP ${pr.status}: ${(await pr.text()).slice(0, 160)} — запустите pnpm tenant:push --slug ${slug}`);
