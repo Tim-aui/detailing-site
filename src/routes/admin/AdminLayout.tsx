@@ -63,9 +63,9 @@ export function AdminLayout() {
     );
   }
 
-  if (isLoading) return <LoadingIndicator label="Проверяем вход" />;
+  if (isLoading) return <LoadingIndicator fullscreen label="Проверяем вход" />;
   if (!session) return <AdminLogin studioName={settings?.name ?? seed.config.name} />;
-  if (studios.isPending) return <LoadingIndicator label="Открываем кабинет" />;
+  if (studios.isPending) return <LoadingIndicator fullscreen label="Открываем кабинет" />;
 
   const access = studios.data?.find((s) => s.slug === slug);
   if (!access) {

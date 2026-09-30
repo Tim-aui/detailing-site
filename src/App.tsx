@@ -33,7 +33,7 @@ export function App() {
       <Route
         path="/s/:slug/admin/*"
         element={
-          <Suspense fallback={<LoadingIndicator label="Открываем кабинет" />}>
+          <Suspense fallback={<LoadingIndicator fullscreen label="Открываем кабинет" />}>
             <AdminApp />
           </Suspense>
         }
@@ -43,7 +43,7 @@ export function App() {
         <Route
           path="services"
           element={
-            <Suspense fallback={<LoadingIndicator label="Загружаем услуги" />}>
+            <Suspense fallback={<LoadingIndicator fullscreen label="Загружаем услуги" />}>
               <ServicesPage />
             </Suspense>
           }
@@ -51,7 +51,7 @@ export function App() {
         <Route
           path="booking"
           element={
-            <Suspense fallback={<LoadingIndicator label="Загружаем расписание" />}>
+            <Suspense fallback={<LoadingIndicator fullscreen label="Загружаем расписание" />}>
               <BookingPage />
             </Suspense>
           }
@@ -59,7 +59,7 @@ export function App() {
         <Route
           path="my-booking"
           element={
-            <Suspense fallback={<LoadingIndicator label="Загружаем записи" />}>
+            <Suspense fallback={<LoadingIndicator fullscreen label="Загружаем записи" />}>
               <MyBookingPage />
             </Suspense>
           }
@@ -67,7 +67,7 @@ export function App() {
         <Route
           path="assistant"
           element={
-            <Suspense fallback={<LoadingIndicator label="Подключаем помощника" />}>
+            <Suspense fallback={<LoadingIndicator fullscreen label="Подключаем помощника" />}>
               <AssistantPage />
             </Suspense>
           }
@@ -75,7 +75,7 @@ export function App() {
         <Route
           path="privacy"
           element={
-            <Suspense fallback={<LoadingIndicator label="Загружаем" />}>
+            <Suspense fallback={<LoadingIndicator fullscreen label="Загружаем" />}>
               <PrivacyPage />
             </Suspense>
           }

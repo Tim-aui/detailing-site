@@ -54,7 +54,7 @@ export function TenantLayout() {
 
   return (
     <TenantProvider slug={slug} settings={settings ?? seed.config}>
-      {isPending && !settings ? <LoadingIndicator label="Загружаем студию" /> : null}
+      {isPending && !settings ? <LoadingIndicator fullscreen label="Загружаем студию" /> : null}
       <div className="page">
         <Layout content={<Outlet />} height="auto" contentWidth={760} />
       </div>
