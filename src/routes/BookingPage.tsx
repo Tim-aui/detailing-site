@@ -294,7 +294,7 @@ export function BookingPage() {
                 onChange={setPhone}
                 type="text"
                 placeholder="+7 900 000-00-00"
-                description="Пришлём подтверждение и напомним о записи"
+                description="Мы позвоним вам, чтобы подтвердить запись"
                 status={phoneError ? {type: 'error', message: phoneError} : undefined}
               />
               <TextInput
@@ -430,6 +430,7 @@ function BookingDone({
               {serviceName} · {settings ? studioDate(startUtc, settings.timezone, 'd MMMM') : ''} в{' '}
               {settings ? studioTime(startUtc, settings.timezone) : ''}
             </Text>
+            <Text type="body">Мы позвоним вам, чтобы подтвердить запись.</Text>
           </VStack>
 
           <Card padding={4}>
