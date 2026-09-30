@@ -38,6 +38,8 @@ import {
   type OwnerBooking,
 } from '../../lib/owner.ts';
 
+const ACTIVE = new Set<OwnerBooking['status']>(['pending', 'confirmed', 'in_progress']);
+
 export const STATUS: Record<OwnerBooking['status'], {label: string; dot: 'warning' | 'accent' | 'success' | 'neutral' | 'error'; badge: 'warning' | 'info' | 'success' | 'neutral' | 'blue'}> = {
   pending: {label: 'Ждёт подтверждения', dot: 'warning', badge: 'warning'},
   confirmed: {label: 'Подтверждена', dot: 'accent', badge: 'blue'},
@@ -65,6 +67,26 @@ export function AdminBookings() {
       map.set(key, [...(map.get(key) ?? []), b]);
     }
     return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
+  }, [bookings.data, tz]);
+
+  // Один телефон — несколько активных записей на один день: скорее всего
+  // дубль (клиент нажал несколько раз или записался «про запас»). С сайта
+  // так больше нельзя, но старые записи и ручные дубли подсвечиваем.
+  const repeats = useMemo(() => {
+    const byKey = new Map<string, OwnerBooking[]>();
+    for (const b of bookings.data ?? []) {
+      if (!ACTIVE.has(b.status)) continue;
+      const phone = b.contact_phone.replace(/\D/g, '').slice(-10);
+      if (phone.length < 10) continue;
+      const key = `${studioDate(b.starts_at, tz, 'yyyy-MM-dd')}|${phone}`;
+      byKey.set(key, [...(byKey.get(key) ?? []), b]);
+    }
+    const out = new Map<string, OwnerBooking[]>();
+    for (const list of byKey.values()) {
+      if (list.length < 2) continue;
+      for (const b of list) out.set(b.id, list.filter((x) => x.id !== b.id));
+    }
+    return out;
   }, [bookings.data, tz]);
 
   const open = bookings.data?.find((b) => b.id === openId) ?? null;
@@ -134,6 +156,7 @@ export function AdminBookings() {
                     endContent={
                       <VStack gap={1} hAlign="end">
                         <Badge variant={STATUS[b.status].badge} label={STATUS[b.status].label} />
+                        {repeats.has(b.id) ? <Badge variant="warning" label="Повтор: тот же телефон" /> : null}
                         <Text type="supporting" color="secondary">
                           {b.paid > 0 ? `оплачено ${money(b.paid)} из ${money(b.price)}` : money(b.price)}
                         </Text>
@@ -148,7 +171,7 @@ export function AdminBookings() {
         </VStack>
       )}
 
-      {open ? <BookingDialog booking={open} settings={settings} onClose={() => setOpenId(null)} /> : null}
+      {open ? <BookingDialog booking={open} settings={settings} repeats={repeats.get(open.id) ?? []} onClose={() => setOpenId(null)} /> : null}
       {creating ? <NewBookingDialog settings={settings} defaultDate={anchor} onClose={() => setCreating(false)} /> : null}
     </VStack>
   );
@@ -176,7 +199,17 @@ function Stat({label, value, hint}: {label: string; value: string; hint: string}
 // Карточка записи
 // ---------------------------------------------------------------------------
 
-function BookingDialog({booking: b, settings, onClose}: {booking: OwnerBooking; settings: StudioSettings; onClose: () => void}) {
+function BookingDialog({
+  booking: b,
+  settings,
+  repeats,
+  onClose,
+}: {
+  booking: OwnerBooking;
+  settings: StudioSettings;
+  repeats: OwnerBooking[];
+  onClose: () => void;
+}) {
   const {slug} = useTenant();
   const toast = useToast();
   const tz = settings.timezone;
@@ -200,6 +233,15 @@ function BookingDialog({booking: b, settings, onClose}: {booking: OwnerBooking; 
     <Dialog isOpen onOpenChange={(o) => !o && onClose()} width={520} purpose="form">
       <DialogHeader title={`${b.service_name} · ${b.code}`} subtitle={STATUS[b.status].label} onOpenChange={(o) => !o && onClose()} />
       <VStack gap={4} padding={4}>
+        {repeats.length ? (
+          <Banner
+            status="warning"
+            title={`У этого клиента ещё ${repeats.length} ${repeats.length === 1 ? 'запись' : repeats.length < 5 ? 'записи' : 'записей'} на этот день`}
+            description={`${repeats
+              .map((r) => `${studioTime(r.starts_at, tz)} ${r.service_name} (${r.code})`)
+              .join(', ')}. Если это дубль — отмените лишнюю. Если клиент правда приедет с несколькими машинами, подтвердите.`}
+          />
+        ) : null}
         <MetadataList>
           <MetadataListItem label="Когда">
             {capitalize(studioDate(b.starts_at, tz, 'EEEE, d MMMM, HH:mm'))} — {multiDay(b, tz) ? studioDate(b.ends_at, tz, 'd MMM HH:mm') : studioTime(b.ends_at, tz)}

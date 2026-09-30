@@ -169,13 +169,12 @@ function AdminLogin({studioName}: {studioName: string}) {
               onChange={setPassword}
               type="password"
               autoComplete="current-password"
-              isRequired
               onEnter={() => void submit()}
             />
             {error ? <Banner status="error" title={error} /> : null}
             <Button label="Войти" variant="primary" size="lg" width="100%" isLoading={busy} clickAction={submit} />
             <Text type="supporting" color="secondary">
-              Доступ выдаёт администратор командой pnpm tenant:owner. Забыли пароль — попросите его сбросить.
+              Забыли пароль или нужен доступ для сотрудника? Напишите тому, кто подключал вам сайт: пароль сбросят за пару минут.
             </Text>
           </VStack>
         </Card>

@@ -164,6 +164,7 @@ function MainTab({settings}: {settings: StudioSettings}) {
         </VStack>
       </Card>
 
+      {settings.assistantEnabled ? (
       <Card padding={4}>
         <VStack gap={3}>
           <Heading level={3}>Подсказки помощника</Heading>
@@ -183,6 +184,7 @@ function MainTab({settings}: {settings: StudioSettings}) {
           ) : null}
         </VStack>
       </Card>
+      ) : null}
 
       <SaveBar
         isSaving={isSaving}
@@ -194,7 +196,8 @@ function MainTab({settings}: {settings: StudioSettings}) {
             description,
             phone: phone.trim(),
             address,
-            assistantSuggestions: suggestions.map((s) => s.trim()).filter(Boolean),
+            // Подсказки сохраняем, только когда их видно (помощник включён).
+            ...(settings.assistantEnabled ? {assistantSuggestions: suggestions.map((s) => s.trim()).filter(Boolean)} : {}),
           })
         }
       />

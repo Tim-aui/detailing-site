@@ -35,5 +35,17 @@ codes=$(cat $tmp/r*.out | sort -u | wc -l)
 rows=$($PSQL -d $DB -c "select count(*) from public.bookings where request_id = '$REQ'")
 echo "двойной клик: 10 параллельных повторов → разных кодов $codes, строк $rows"
 [ "$codes" = "1" ] && [ "$rows" = "1" ] || { echo "FAIL"; cat $tmp/r*.out; exit 1; }
+# Один телефон, 10 параллельных записей на разное время одного дня —
+# проходит ровно одна (правило «одна запись на день»).
+T3=$($PSQL -d $DB -c "select '$T'::timestamptz + interval '2 days'")
+for i in $(seq 0 9); do
+  ( $PSQL -d $DB -c "set role anon; select public.create_booking('demo','engine','$T3'::timestamptz + interval '$((i * 30)) minutes','Один','+7 900 888-00-00') ->> 'code'" >"$tmp/p$i.out" 2>"$tmp/p$i.err" || true ) &
+done
+wait
+rows=$($PSQL -d $DB -c "select count(*) from public.bookings where right(phone_key, 10) = '9008880000'")
+dup=$(cat $tmp/p*.err | grep -c "уже есть запись" || true)
+echo "один телефон: 10 параллельных записей на один день → строк $rows, отказов «уже есть запись» $dup"
+[ "$rows" = "1" ] && [ "$dup" = "9" ] || { echo "FAIL"; cat $tmp/p*.err | sort | uniq -c; exit 1; }
+
 rm -rf "$tmp"
 echo "ГОНКИ ПРОЙДЕНЫ"

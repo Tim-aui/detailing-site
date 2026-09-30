@@ -19,8 +19,8 @@ export function AdminAssistant() {
       </VStack>
       <AssistantChat
         mode="owner"
-        suggestions={['Что у меня завтра?', 'Сколько машин было на неделе?', 'Сколько денег получено?', 'Кто не подтверждён?']}
-        placeholder="Что у меня завтра?"
+        suggestions={[]}
+        placeholder="Например: что у меня завтра? сколько денег получено за неделю?"
       />
     </VStack>
   );

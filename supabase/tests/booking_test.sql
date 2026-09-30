@@ -203,5 +203,37 @@ select pg_temp.ok(public.studio_patch('draft') is null, 'правки черно
 reset role;
 select pg_temp.ok(public.studio_hours_for('{"hours":[{"day":4,"open":"10:00","close":"18:00"}],"closedDates":["2099-01-01"]}', '2099-01-01') = '{}'::jsonb, 'closedDates закрывает день');
 
+-- ===================== один телефон — одна запись на день =====================
+reset role;
+set role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+create temp table t_lim as select public.create_booking('demo', 'wax', (select t10 from t_at) + interval '6 days', 'Лимит', '+7 911 222-33-44') as r;
+select pg_temp.ok((select r ->> 'code' from t_lim) is not null, 'лимит: первая запись на день проходит');
+select pg_temp.throws($$select public.create_booking('demo', 'wax', (select t10 from t_at) + interval '6 days 4 hours', 'Лимит', '+7 911 222-33-44')$$,
+  'уже есть запись', 'тот же телефон, тот же день, другое время — отказ');
+select pg_temp.throws($$select public.create_booking('demo', 'wax', (select t10 from t_at) + interval '6 days', 'Лимит', '8 (911) 222-33-44')$$,
+  'уже есть запись', 'тот же номер в формате 8 (…) — тоже отказ');
+select pg_temp.ok((public.create_booking('demo', 'wax', (select t10 from t_at) + interval '6 days', 'Сосед', '+7 911 222-33-45') ->> 'code') is not null,
+  'другой телефон на то же время — можно (есть свободный бокс)');
+select pg_temp.ok((public.create_booking('demo', 'wax', (select t10 from t_at) + interval '7 days', 'Лимит', '+7 911 222-33-44') ->> 'code') is not null,
+  'тот же телефон на другой день — можно');
+create temp table t_lim_req as select gen_random_uuid() as id;
+grant select on t_lim_req to anon, authenticated;
+select pg_temp.ok((public.create_booking('demo', 'wax', (select t10 from t_at) + interval '8 days', 'Лимит', '+7 911 222-33-44', '', '', (select id from t_lim_req)) ->> 'code') is not null,
+  'третья предстоящая запись — можно');
+select pg_temp.ok((public.create_booking('demo', 'wax', (select t10 from t_at) + interval '8 days', 'Лимит', '+7 911 222-33-44', '', '', (select id from t_lim_req)) ->> 'repeated')::boolean,
+  'двойной клик по той же попытке возвращает ту же запись, а не отказ');
+select pg_temp.throws($$select public.create_booking('demo', 'wax', (select t10 from t_at) + interval '9 days', 'Лимит', '+7 911 222-33-44')$$,
+  '3 предстоящие', 'четвёртая предстоящая запись — отказ');
+select pg_temp.ok((public.cancel_booking('demo', (select r ->> 'code' from t_lim), '+7 911 222-33-44') ->> 'ok')::boolean, 'клиент отменил одну запись');
+select pg_temp.ok((public.create_booking('demo', 'wax', (select t10 from t_at) + interval '9 days', 'Лимит', '+7 911 222-33-44') ->> 'code') is not null,
+  'после отмены место в лимите освободилось');
+reset role;
+set role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"00000000-0000-0000-0000-00000000000a"}', true);
+select pg_temp.ok((public.owner_create_booking('demo', 'wax', (select t10 from t_at) + interval '7 days 3 hours', 'Лимит', '+7 911 222-33-44') ->> 'code') is not null,
+  'владелец может добавить вторую запись тому же клиенту на тот же день');
+reset role;
+
 rollback;
 \echo 'ВСЕ ПРОВЕРКИ БАЗЫ ПРОЙДЕНЫ'

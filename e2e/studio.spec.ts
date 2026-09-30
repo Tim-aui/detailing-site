@@ -34,6 +34,9 @@ async function login(page: Page) {
 test.describe.configure({mode: 'serial'});
 
 let clientName = '';
+// Свой номер на каждый прогон (телефон / компьютер): один номер может
+// записаться только раз в день, иначе второй прогон упрётся в это правило.
+const clientPhone = (project: string) => (project === 'phone' ? '+7 918 555-44-33' : '+7 918 555-44-34');
 
 test('клиент записывается: услуга → дата → свободное время → контакты', async ({page}, info) => {
   clientName = `Тест ${info.project.name} ${Date.now() % 10000}`;
@@ -47,7 +50,7 @@ test('клиент записывается: услуга → дата → св�
   await page.locator('.date-chip:not(.date-chip--full)').first().click();
   await page.getByRole('radio', {name: /^\d{2}:\d{2}$/}).first().click();
   await page.getByLabel(/Как к вам обращаться/).fill(clientName);
-  await page.getByLabel(/^Телефон/).fill('+7 918 555-44-33');
+  await page.getByLabel(/^Телефон/).fill(clientPhone(info.project.name));
   await page.getByLabel(/^Автомобиль/).fill('Toyota Camry');
   // Без согласия кнопка неактивна и есть подсказка.
   await expect(page.getByText('Отметьте согласие на обработку персональных данных')).toBeVisible();
@@ -68,6 +71,20 @@ test('согласие ведёт на политику с реквизитам�
   await expect(page.getByRole('heading', {name: 'Политика обработки персональных данных'})).toBeVisible();
   await expect(page.getByText(studio.name).first()).toBeVisible();
   await expect(page.getByText(studio.phone).first()).toBeVisible();
+});
+
+test('тот же телефон не может занять второе время в тот же день', async ({page}, info) => {
+  // Первая запись этим номером уже сделана в тесте клиента выше.
+  await page.goto(`/s/${SLUG}/booking`);
+  await page.getByLabel('Выберите услугу').selectOption('wax');
+  await page.locator('.date-chip:not(.date-chip--full)').first().click();
+  await page.getByRole('radio', {name: /^\d{2}:\d{2}$/}).last().click();
+  await page.getByLabel(/Как к вам обращаться/).fill('Повтор');
+  await page.getByLabel(/^Телефон/).fill(clientPhone(info.project.name));
+  await page.getByLabel('Согласен на обработку персональных данных').check();
+  await page.getByRole('button', {name: 'Записаться', exact: true}).click();
+  await expect(page.getByText(/уже есть запись/).first()).toBeVisible();
+  await shot(page, '04a-same-phone');
 });
 
 test('занятое время видно и недоступно', async ({page}) => {
@@ -156,7 +173,8 @@ test('владелец меняет подпись и фото одной кар
 test('помощник владельца отвечает по записям и деньгам', async ({page}) => {
   await page.goto(`/s/${SLUG}/admin/assistant`);
   await login(page);
-  await page.getByRole('button', {name: 'Сколько денег получено?'}).click();
+  await page.getByLabel('Ваш вопрос').fill('Сколько денег получено?');
+  await page.getByRole('button', {name: 'Спросить'}).click();
   await expect(page.getByRole('log', {name: 'Сообщения с помощником'})).toContainText(/получено/i);
   await shot(page, '09-owner-assistant');
 });
