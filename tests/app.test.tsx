@@ -47,14 +47,11 @@ describe('Главная страница студии', () => {
     expect(await screen.findByRole('heading', {name: demo.name, level: 1})).toBeInTheDocument();
   });
 
-  it('частые вопросы вместо ИИ-помощника: ответ из настроек, без запросов', async () => {
-    const user = userEvent.setup();
+  it('без блока вопросов и без ИИ-помощника на главной', async () => {
     renderAt('/s/demo/');
-    expect(await screen.findByRole('heading', {name: 'Частые вопросы'})).toBeInTheDocument();
+    expect(await screen.findByRole('heading', {name: demo.name, level: 1})).toBeInTheDocument();
+    expect(screen.queryByRole('heading', {name: 'Частые вопросы'})).not.toBeInTheDocument();
     expect(screen.queryByText('Помощник студии')).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', {name: 'Можно ли перенести или отменить запись?'}));
-    const h = demo.cancellation.freeCancelHours;
-    expect(await screen.findByText(new RegExp(`не позднее чем за ${h} `))).toBeInTheDocument();
   });
 
   it('старая ссылка на выключенного помощника ведёт на главную', async () => {

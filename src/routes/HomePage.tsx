@@ -9,7 +9,6 @@ import {useTenant} from '../tenants/TenantContext.tsx';
 import {IconByName, ServiceIcon} from '../components/icons.tsx';
 import {money, duration, hoursLabel, dayName, isOpenNow, mapLink, studioDay, studioTime} from '../lib/format.ts';
 import {AssistantTeaser} from '../components/AssistantTeaser.tsx';
-import {StudioFaq} from '../components/StudioFaq.tsx';
 import {useMemo} from 'react';
 import {freeSlots} from '../lib/schedule.ts';
 import {useBusy} from '../lib/studio.ts';
@@ -274,11 +273,6 @@ export function HomePage() {
             </Section>
           </Reveal>
         ) : null}
-
-        {/* Частые вопросы: ответы из настроек студии, без ИИ */}
-        <Reveal as="section" className="shell">
-          <StudioFaq slug={slug} cfg={cfg} nextFree={nextFree} />
-        </Reveal>
 
         {/* ИИ-помощник — только если включён в studio.json (assistantEnabled) */}
         {cfg.assistantEnabled ? (

@@ -83,17 +83,6 @@ test('занятое время видно и недоступно', async ({pag
   await shot(page, '04-busy');
 });
 
-test('частые вопросы отвечают из настроек студии', async ({page}) => {
-  await page.goto(`/s/${SLUG}/`);
-  await expect(page.getByRole('heading', {name: 'Частые вопросы'})).toBeVisible();
-  await page.getByRole('button', {name: 'Сколько стоят услуги и сколько длится работа?'}).click();
-  const popular = studio.services.find((s: {isActive: boolean; isPopular: boolean}) => s.isActive && s.isPopular);
-  await expect(page.getByText(popular.name, {exact: true}).first()).toBeVisible();
-  await page.getByRole('button', {name: 'Как связаться со студией?'}).click();
-  await expect(page.getByRole('link', {name: studio.phone}).first()).toBeVisible();
-  await shot(page, '05-faq');
-});
-
 test('помощник клиента отвечает по данным студии', async ({page}) => {
   test.skip(!studio.assistantEnabled, 'ИИ-помощник для клиентов выключен в studio.json');
   await page.goto(`/s/${SLUG}/assistant`);

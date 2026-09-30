@@ -195,25 +195,25 @@
     {
       "id": "g1",
       "photo": "XXXL.webp",
-      "caption": "Toyota Land Cruiser 200: кузов в глубоком блеске после детейлинга",
+      "caption": "",
       "order": 1
     },
     {
       "id": "g2",
       "photo": "XXXL-2.webp",
-      "caption": "BMW 5 серии: проверяем лак под контрольным светом",
+      "caption": "",
       "order": 2
     },
     {
       "id": "g3",
       "photo": "XXXL-3.webp",
-      "caption": "Полируем колёсные диски вручную",
+      "caption": "",
       "order": 3
     },
     {
       "id": "g4",
       "photo": "XXXL-4.webp",
-      "caption": "Химчистка кожаного салона: до и после",
+      "caption": "",
       "order": 4
     }
   ],
