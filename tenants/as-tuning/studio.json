@@ -1,0 +1,256 @@
+{
+  "name": "AS Tuning",
+  "slug": "as-tuning",
+  "tagline": "Центр тонирования и защиты кузова плёнкой в Краснодаре",
+  "description": "Тонировка, бронирование плёнкой, полировка и химчистка салона. Работаем ежедневно с 9:00 до 20:00 на Бородинской, 135 — запишитесь онлайн, и бокс будет ждать вас в выбранное время.",
+  "phone": "+7 988 594-06-01",
+  "messengers": [
+    "whatsapp"
+  ],
+  "address": {
+    "city": "Краснодар",
+    "street": "Бородинская улица, 135",
+    "full": "Краснодар, Бородинская улица, 135",
+    "latitude": 45.007285,
+    "longitude": 39.104293,
+    "directionsNote": "Пашковский микрорайон, есть парковка для клиентов. Второй номер для связи: +7 928 248-92-91."
+  },
+  "timezone": "Europe/Moscow",
+  "hours": [
+    {
+      "day": 0,
+      "open": "09:00",
+      "close": "20:00"
+    },
+    {
+      "day": 1,
+      "open": "09:00",
+      "close": "20:00"
+    },
+    {
+      "day": 2,
+      "open": "09:00",
+      "close": "20:00"
+    },
+    {
+      "day": 3,
+      "open": "09:00",
+      "close": "20:00"
+    },
+    {
+      "day": 4,
+      "open": "09:00",
+      "close": "20:00"
+    },
+    {
+      "day": 5,
+      "open": "09:00",
+      "close": "20:00"
+    },
+    {
+      "day": 6,
+      "open": "09:00",
+      "close": "20:00"
+    }
+  ],
+  "bufferMin": 15,
+  "minNoticeHours": 2,
+  "bookingHorizonDays": 30,
+  "services": [
+    {
+      "id": "tint-athermal",
+      "name": "Тонировка атермальной плёнкой передней полусферы",
+      "description": "Итоговая стоимость зависит от выбранного материала и марки автомобиля.",
+      "price": 900000,
+      "durationMin": 120,
+      "days": 1,
+      "icon": "car",
+      "isPopular": true,
+      "isActive": true
+    },
+    {
+      "id": "ppf-front",
+      "name": "Бронирование передней части «Стандарт»",
+      "description": "Часть капота, часть крыльев, бампер, фары, зеркала и зона под ручками. Итоговая стоимость зависит от выбранного материала и марки автомобиля.",
+      "price": 3000000,
+      "durationMin": 480,
+      "days": 1,
+      "icon": "shield-check",
+      "isPopular": true,
+      "isActive": true
+    },
+    {
+      "id": "polish-one-step",
+      "name": "Полировка кузова (одноступенчатая)",
+      "description": "Предпродажная полировка кузова одним номером пасты для придания блеска.",
+      "price": 1000000,
+      "durationMin": 360,
+      "days": 1,
+      "icon": "diamond",
+      "isPopular": true,
+      "isActive": true
+    },
+    {
+      "id": "polish-restore",
+      "name": "Абразивная (восстановительная) полировка кузова",
+      "description": "Выполировывается каждая царапина до достижения идеального состояния.",
+      "price": 2000000,
+      "durationMin": 480,
+      "days": 1,
+      "icon": "sparkle",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "tint-side",
+      "name": "Тонировка боковых стёкол",
+      "description": "Стоимость указана за 2 боковых стекла.",
+      "price": 300000,
+      "durationMin": 60,
+      "days": 1,
+      "icon": "car",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "antirain",
+      "name": "Гидрофобное покрытие стёкол (антидождь)",
+      "description": "Стоимость указана за нанесение состава на все стёкла автомобиля.",
+      "price": 400000,
+      "durationMin": 60,
+      "days": 1,
+      "icon": "drop",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "headlights-light",
+      "name": "Полировка фар (лёгкая)",
+      "description": "Придаём блеск фарам с помощью располировки абразивной пастой.",
+      "price": 200000,
+      "durationMin": 60,
+      "days": 1,
+      "icon": "sparkle",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "headlights-restore",
+      "name": "Полировка фар (восстановительная)",
+      "description": "Максимально возможное восстановление пластика фары и возвращение первоначального блеска.",
+      "price": 700000,
+      "durationMin": 120,
+      "days": 1,
+      "icon": "sparkle",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "interior-sedan",
+      "name": "Химчистка салона (седан/хэтчбек)",
+      "description": "Стоимость указана за химчистку салона средней степени загрязнения.",
+      "price": 1500000,
+      "durationMin": 360,
+      "days": 1,
+      "icon": "sofa",
+      "isPopular": false,
+      "isActive": true
+    },
+    {
+      "id": "interior-suv",
+      "name": "Химчистка салона (джип)",
+      "description": "Стоимость указана за химчистку салона средней степени загрязнения.",
+      "price": 1700000,
+      "durationMin": 420,
+      "days": 1,
+      "icon": "sofa",
+      "isPopular": false,
+      "isActive": true
+    }
+  ],
+  "boxes": [
+    {
+      "id": "box-1",
+      "name": "Бокс 1",
+      "acceptsLongStay": true,
+      "isActive": true
+    },
+    {
+      "id": "box-2",
+      "name": "Бокс 2",
+      "acceptsLongStay": true,
+      "isActive": true
+    }
+  ],
+  "heroPhoto": "hero-as-tuning.webp",
+  "logo": "logo-as-tuning.png",
+  "gallery": [
+    {
+      "id": "g1",
+      "photo": "work-chameleon.webp",
+      "caption": "",
+      "order": 1
+    },
+    {
+      "id": "g2",
+      "photo": "work-lexus.webp",
+      "caption": "",
+      "order": 2
+    },
+    {
+      "id": "g3",
+      "photo": "work-suv.webp",
+      "caption": "",
+      "order": 3
+    },
+    {
+      "id": "g4",
+      "photo": "work-facade.webp",
+      "caption": "",
+      "order": 4
+    }
+  ],
+  "infoCards": [
+    {
+      "id": "c1",
+      "title": "Рейтинг 4,7 на Яндекс Картах",
+      "text": "Так нас оценивают клиенты в отзывах.",
+      "icon": "star"
+    },
+    {
+      "id": "c2",
+      "title": "Плёнка и тонировка",
+      "text": "Антигравийная плёнка, бронирование фар, антихром, ламинация карбоном и тонировка стёкол.",
+      "icon": "shield-check"
+    },
+    {
+      "id": "c3",
+      "title": "Удобно ждать",
+      "text": "Парковка и Wi‑Fi для клиентов. Есть подарочные сертификаты.",
+      "icon": "car"
+    }
+  ],
+  "cancellation": {
+    "freeCancelHours": 12,
+    "note": "Отменить или перенести запись без штрафа можно не позднее чем за 12 часов до визита."
+  },
+  "assistantEnabled": false,
+  "assistantSuggestions": [
+    "Когда ближайшее окно?",
+    "Сколько стоит полировка?",
+    "Как найти студию?"
+  ],
+  "legal": {
+    "operator": "",
+    "inn": "",
+    "ogrn": "",
+    "email": ""
+  },
+  "pwa": {
+    "shortName": "AS Tuning",
+    "themeColor": "#4690FF",
+    "backgroundColor": "#000000",
+    "icon": "icon-192.png"
+  },
+  "closedDates": []
+}

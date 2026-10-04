@@ -169,11 +169,23 @@ export async function syncTenants() {
 
   // Реестр для приложения. Настройки лежат в JSON-строке: так они
   // попадают в бандл без дерева зависимостей и остаются валидируемыми.
+  // Студия для короткой ссылки «/» — tenants/root-slug.txt (одно слово,
+  // например demo). Без файла — первая опубликованная по алфавиту.
+  const rootSlug = (await readFile(path.join(tenantsDir, 'root-slug.txt'), 'utf8').catch(() => '')).trim();
+  if (rootSlug && !publicEntries.some((e) => e.slug === rootSlug && !e.isSample)) {
+    console.warn(`⚠ tenants/root-slug.txt: «${rootSlug}» нет среди опубликованных студий — «/» поведёт на первую по алфавиту`);
+  }
   const payload = publicEntries
     .map((e) => ({...e, config: tenants.find((t) => t.slug === e.slug)!.config}))
     // Черновики в конец: реестр[0] — это адрес для короткой ссылки,
     // он не должен указывать на неопубликованную студию.
-    .sort((a, b) => Number(a.isSample) - Number(b.isSample) || a.slug.localeCompare(b.slug));
+    .sort(
+      (a, b) =>
+        Number(a.isSample) - Number(b.isSample) ||
+        Number(b.slug === rootSlug) - Number(a.slug === rootSlug) ||
+        a.slug.localeCompare(b.slug),
+    );
+  if (payload[0]) console.log(`  Короткая ссылка «/» → /s/${payload[0].slug}/`);
 
   const ts = `// АВТОГЕНЕРИРУЕТСЯ файлом scripts/tenant-sync.ts. Не редактировать вручную.
 // Источник правды: tenants/<slug>/studio.json
