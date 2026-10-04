@@ -27,7 +27,7 @@ function parseArgs(argv: string[]): Args {
   return {
     slug: requireFlag('slug', argv, 'Пример: pnpm tenant:new --slug moya-studiya --name "Моя студия"'),
     name: requireFlag('name', argv, 'Пример: pnpm tenant:new --slug moya-studiya --name "Моя студия"'),
-    from: flag('from', argv) ?? 'demo',
+    from: flag('from', argv) ?? '1808-detailing',
   };
 }
 

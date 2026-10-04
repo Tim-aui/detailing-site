@@ -7,7 +7,7 @@ import {readFileSync, mkdirSync} from 'node:fs';
  *   занятое время не взять → помощник отвечает по данным →
  *   приложение устанавливается.
  */
-const SLUG = process.env.E2E_SLUG ?? 'demo';
+const SLUG = process.env.E2E_SLUG ?? '1808-detailing';
 const studio = JSON.parse(readFileSync(new URL(`../tenants/${SLUG}/studio.json`, import.meta.url), 'utf8'));
 const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL ?? 'owner@1808.test';
 const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD ?? 'Detailing-1808';
@@ -152,7 +152,7 @@ test('владелец меняет подпись и фото одной кар
   await page.getByRole('button', {name: 'Сохранить подпись'}).nth(2).click();
   await expect(page.getByText('Подпись сохранена').first()).toBeVisible();
 
-  await page.locator('input[type=file][aria-label="Заменить фото"]').nth(1).setInputFiles(new URL('../tenants/demo/photos/hero.jpg', import.meta.url).pathname);
+  await page.locator('input[type=file][aria-label="Заменить фото"]').nth(1).setInputFiles(new URL('../tenants/1808-detailing/photos/hero.jpg', import.meta.url).pathname);
   await expect(page.getByText('Фото заменено').first()).toBeVisible({timeout: 20_000});
 
   await expect.poll(async () => page.locator('.admin-photo').nth(1).getAttribute('src')).not.toBe(imgsBefore[1]);

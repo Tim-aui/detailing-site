@@ -1,6 +1,6 @@
 /**
  * Печатает studio.json после проверки схемой (со значениями по умолчанию).
- *   node --experimental-strip-types scripts/tenant-json.ts tenants/demo/studio.json
+ *   node --experimental-strip-types scripts/tenant-json.ts tenants/1808-detailing/studio.json
  * Нужен тестам базы: сервер должен видеть ровно тот конфиг, что и сайт.
  */
 import {readFileSync} from 'node:fs';

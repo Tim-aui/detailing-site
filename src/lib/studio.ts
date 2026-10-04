@@ -20,6 +20,12 @@ export function seedFor(slug: string) {
   return TENANT_SEEDS.find((t) => t.slug === slug) ?? null;
 }
 
+/** Студия, у которой этот адрес был раньше (после переименования). */
+export function renamedSeedFor(oldSlug: string) {
+  if (seedFor(oldSlug)) return null;
+  return TENANT_SEEDS.find((t) => t.config.previousSlugs.includes(oldSlug)) ?? null;
+}
+
 export function allSeeds() {
   return TENANT_SEEDS;
 }

@@ -8,7 +8,7 @@
 
 ```bash
 pnpm install
-pnpm dev            # сначала tenant:sync, потом vite → http://localhost:5173/s/demo/
+pnpm dev            # сначала tenant:sync, потом vite → http://localhost:5173/s/1808-detailing/
 pnpm test           # интерфейс и расписание (vitest)
 pnpm test:db        # SQL-тесты и гонка двойной записи (нужен локальный PostgreSQL)
 pnpm test:e2e       # Playwright: телефон и компьютер

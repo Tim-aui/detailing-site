@@ -90,6 +90,13 @@ export const studioSettingsSchema = z.object({
     .min(2)
     .max(48)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'slug: только латиница в нижнем регистре, цифры и дефисы'),
+  /**
+   * Прежние адреса студии. Ссылки /s/<старый>/… автоматически ведут на
+   * /s/<slug>/… — нужно после переименования, чтобы не сломать разосланные ссылки.
+   */
+  previousSlugs: z
+    .array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'previousSlugs: только латиница в нижнем регистре, цифры и дефисы'))
+    .default([]),
   tagline: z.string().default(''),
   description: z.string().default(''),
 

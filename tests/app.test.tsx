@@ -18,7 +18,7 @@ import {allSeeds, seedFor} from '../src/lib/studio.ts';
 
 // Ожидания берём из того же studio.json, что и сборка: переименование
 // студии или смена цен не ломают тест, а пропажа данных — ломает.
-const demo = seedFor('demo')!.config;
+const demo = seedFor('1808-detailing')!.config;
 const activeServices = demo.services.filter((s) => s.isActive);
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -43,24 +43,32 @@ beforeEach(() => {
 
 describe('Главная страница студии', () => {
   it('показывает название студии из файла настроек', async () => {
-    renderAt('/s/demo/');
+    renderAt('/s/1808-detailing/');
     expect(await screen.findByRole('heading', {name: demo.name, level: 1})).toBeInTheDocument();
   });
 
   it('без блока вопросов и без ИИ-помощника на главной', async () => {
-    renderAt('/s/demo/');
+    renderAt('/s/1808-detailing/');
     expect(await screen.findByRole('heading', {name: demo.name, level: 1})).toBeInTheDocument();
     expect(screen.queryByRole('heading', {name: 'Частые вопросы'})).not.toBeInTheDocument();
     expect(screen.queryByText('Помощник студии')).not.toBeInTheDocument();
   });
 
+  it('старый адрес /s/demo/ после переименования открывает ту же студию', async () => {
+    localStorage.setItem('studio:phone:demo', '+7 918 000-00-00');
+    renderAt('/s/demo/booking');
+    expect(await screen.findByRole('heading', {name: 'Запись в студию'})).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(escape(demo.name)))).toBeInTheDocument();
+    expect(localStorage.getItem('studio:phone:1808-detailing')).toBe('+7 918 000-00-00');
+  });
+
   it('старая ссылка на выключенного помощника ведёт на главную', async () => {
-    renderAt('/s/demo/assistant');
+    renderAt('/s/1808-detailing/assistant');
     expect(await screen.findByRole('heading', {name: demo.name, level: 1})).toBeInTheDocument();
   });
 
   it('выводит услуги с ценами', async () => {
-    renderAt('/s/demo/');
+    renderAt('/s/1808-detailing/');
     const first = activeServices[0];
     expect((await screen.findAllByText(first.name)).length).toBeGreaterThan(0);
     // Цена хранится в копейках, на экране — рубли в формате money().
@@ -69,7 +77,7 @@ describe('Главная страница студии', () => {
   });
 
   it('показывает три карточки «почему мы»', async () => {
-    renderAt('/s/demo/');
+    renderAt('/s/1808-detailing/');
     expect(demo.infoCards).toHaveLength(3);
     for (const card of demo.infoCards) {
       expect(await screen.findByText(card.title)).toBeInTheDocument();
@@ -77,16 +85,16 @@ describe('Главная страница студии', () => {
   });
 
   it('нижняя навигация ведёт на три раздела', async () => {
-    renderAt('/s/demo/');
+    renderAt('/s/1808-detailing/');
     const nav = await screen.findByRole('navigation', {name: 'Основная навигация'});
     expect(within(nav).getByRole('link', {name: /Главная/})).toBeInTheDocument();
-    expect(within(nav).getByRole('link', {name: /Услуги/})).toHaveAttribute('href', '/s/demo/services');
-    expect(within(nav).getByRole('link', {name: /Моя запись/})).toHaveAttribute('href', '/s/demo/my-booking');
+    expect(within(nav).getByRole('link', {name: /Услуги/})).toHaveAttribute('href', '/s/1808-detailing/services');
+    expect(within(nav).getByRole('link', {name: /Моя запись/})).toHaveAttribute('href', '/s/1808-detailing/my-booking');
   });
 
   it('кнопка на главном фото ведёт на страницу записи', async () => {
     const user = userEvent.setup();
-    renderAt('/s/demo/');
+    renderAt('/s/1808-detailing/');
     await user.click(await screen.findByRole('link', {name: /Записаться онлайн/}));
     expect(await screen.findByRole('heading', {name: 'Запись в студию'})).toBeInTheDocument();
   });
@@ -108,7 +116,7 @@ describe('Главная страница студии', () => {
 
 describe('Страница услуг', () => {
   it('показывает все услуги студии', async () => {
-    renderAt('/s/demo/services');
+    renderAt('/s/1808-detailing/services');
     for (const service of activeServices) {
       expect((await screen.findAllByText(new RegExp(`^${escape(service.name)}$`))).length).toBeGreaterThan(0);
     }
@@ -118,7 +126,7 @@ describe('Страница услуг', () => {
 describe('Запись', () => {
   it('показывает свободные слоты и принимает контакты', async () => {
     const user = userEvent.setup();
-    renderAt('/s/demo/booking');
+    renderAt('/s/1808-detailing/booking');
 
     // Услуга выбрана по умолчанию, дальше — выбор даты и времени.
     const times = await screen.findAllByRole('radio', {name: /^\d{2}:\d{2}/}, {timeout: 5000});
@@ -140,7 +148,7 @@ describe('Запись', () => {
 
   it('не пускает без согласия на обработку данных', async () => {
     const user = userEvent.setup();
-    renderAt('/s/demo/booking');
+    renderAt('/s/1808-detailing/booking');
     const times = await screen.findAllByRole('radio', {name: /^\d{2}:\d{2}/}, {timeout: 5000});
     await user.click(times[0]);
     await user.type(screen.getByLabelText(/Как к вам обращаться/), 'Иван');
@@ -155,7 +163,7 @@ describe('Запись', () => {
 
   it('не пускает без телефона и показывает ошибку', async () => {
     const user = userEvent.setup();
-    renderAt('/s/demo/booking');
+    renderAt('/s/1808-detailing/booking');
     const times = await screen.findAllByRole('radio', {name: /^\d{2}:\d{2}/}, {timeout: 5000});
     await user.click(times[0]);
     await user.type(screen.getByLabelText(/Как к вам обращаться/), 'Иван');
@@ -169,7 +177,7 @@ describe('Моя запись', () => {
   it('находит запись по телефону и предлагает отмену', async () => {
     const user = userEvent.setup();
     // Сначала делаем запись, затем открываем раздел «Моя запись».
-    renderAt('/s/demo/booking');
+    renderAt('/s/1808-detailing/booking');
     const times = await screen.findAllByRole('radio', {name: /^\d{2}:\d{2}/}, {timeout: 5000});
     await user.click(times[0]);
     await user.type(screen.getByLabelText(/Как к вам обращаться/), 'Иван');
@@ -177,20 +185,20 @@ describe('Моя запись', () => {
     await user.click(screen.getByLabelText('Согласен на обработку персональных данных'));
     await user.click(await screen.findByRole('button', {name: 'Записаться'}));
 
-    renderAt('/s/demo/my-booking');
+    renderAt('/s/1808-detailing/my-booking');
     expect(await screen.findByText('Ждёт подтверждения')).toBeInTheDocument();
     expect(screen.getByRole('button', {name: 'Отменить запись'})).toBeInTheDocument();
   });
 
   it('пустое состояние объясняет, что делать', async () => {
-    renderAt('/s/demo/my-booking');
+    renderAt('/s/1808-detailing/my-booking');
     expect(await screen.findByText('Записей пока нет')).toBeInTheDocument();
   });
 });
 
 describe('Кабинет владельца', () => {
   it('без базы объясняет, что кабинету нужна Supabase, и не показывает данные', async () => {
-    renderAt('/s/demo/admin');
+    renderAt('/s/1808-detailing/admin');
     expect(await screen.findByText('Кабинет работает только с базой')).toBeInTheDocument();
     expect(screen.queryByRole('navigation', {name: 'Основная навигация'})).not.toBeInTheDocument();
   });
@@ -204,11 +212,11 @@ describe('Кабинет владельца', () => {
 
 describe('Установка', () => {
   it('страница студии подключает её манифест и значок', async () => {
-    renderAt('/s/demo/');
+    renderAt('/s/1808-detailing/');
     await screen.findByRole('heading', {name: demo.name, level: 1});
     await waitFor(() =>
-      expect(document.querySelector('link[rel="manifest"]')?.getAttribute('href')).toBe('/tenants/demo/manifest.webmanifest'),
+      expect(document.querySelector('link[rel="manifest"]')?.getAttribute('href')).toBe('/tenants/1808-detailing/manifest.webmanifest'),
     );
-    expect(document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href')).toBe('/tenants/demo/apple-touch-icon.png');
+    expect(document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href')).toBe('/tenants/1808-detailing/apple-touch-icon.png');
   });
 });

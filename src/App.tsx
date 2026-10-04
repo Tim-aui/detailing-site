@@ -7,7 +7,7 @@ import {Button} from '@astryxdesign/core/Button';
 import {TenantLayout} from './routes/TenantLayout.tsx';
 import {LoadingIndicator} from './components/LoadingIndicator.tsx';
 import {HomePage} from './routes/HomePage.tsx';
-import {allSeeds} from './lib/studio.ts';
+import {allSeeds, renamedSeedFor} from './lib/studio.ts';
 
 // Главная входит в первый экран и грузится сразу. Остальное — по клику:
 // страницы записи и помощника заметно тяжелее, а человеку они нужны
@@ -27,6 +27,8 @@ const AssistantPage = lazy(() => import('./routes/AssistantPage.tsx').then((m) =
  * пути, slug разбирает клиент.
  */
 export function App() {
+  const moved = useRenamedStudio();
+  if (moved) return <Navigate to={moved} replace />;
   return (
     <Routes>
       <Route path="/" element={<RootRedirect />} />
@@ -85,6 +87,30 @@ export function App() {
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
+}
+
+/**
+ * Старый адрес переименованной студии → новый, с тем же хвостом пути:
+ * /s/demo/booking?x=1 → /s/1808-detailing/booking?x=1. Работает и для
+ * кабинета, и при открытом офлайн service worker (решает само приложение).
+ * Заодно переносит сохранённый телефон клиента, чтобы «Моя запись» не
+ * спрашивала его заново.
+ */
+function useRenamedStudio(): string | null {
+  const {pathname, search, hash} = useLocation();
+  const m = /^\/s\/([^/]+)(\/.*)?$/.exec(pathname);
+  if (!m) return null;
+  const target = renamedSeedFor(m[1]);
+  if (!target) return null;
+  try {
+    for (const key of ['phone', 'bookings']) {
+      const was = localStorage.getItem(`studio:${key}:${m[1]}`);
+      if (was && !localStorage.getItem(`studio:${key}:${target.slug}`)) localStorage.setItem(`studio:${key}:${target.slug}`, was);
+    }
+  } catch {
+    // приватный режим без localStorage — просто переходим
+  }
+  return `/s/${target.slug}${m[2] ?? '/'}${search}${hash}`;
 }
 
 /**

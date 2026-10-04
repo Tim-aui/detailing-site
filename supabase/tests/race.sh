@@ -7,7 +7,7 @@ set -e
 cd "$(dirname "$0")/../.."
 DB=${DB:-studio_test}
 PSQL=${PSQL:-"sudo -u postgres psql -q -X -t -A"}
-CFG=$(node --experimental-strip-types scripts/tenant-json.ts tenants/demo/studio.json)
+CFG=$(node --experimental-strip-types scripts/tenant-json.ts tenants/1808-detailing/studio.json)
 $PSQL -d $DB -c "truncate public.bookings, public.tenants cascade" 2>/dev/null >/dev/null
 $PSQL -d $DB -v cfg="$CFG" <<'SQL' >/dev/null
 insert into public.tenants (slug, name, config, is_published) values ('demo', 'Demo', :'cfg'::jsonb, true);

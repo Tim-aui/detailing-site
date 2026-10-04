@@ -116,6 +116,17 @@ export async function syncTenants() {
   await rmrf(generatedDir);
   await mkdir(generatedDir, {recursive: true});
 
+  // Прежний адрес одной студии не может быть адресом другой (или прежним у двух сразу).
+  const owners = new Map<string, string>();
+  for (const t of tenants) owners.set(t.slug, t.slug);
+  for (const t of tenants) {
+    for (const old of t.config.previousSlugs ?? []) {
+      const taken = owners.get(old);
+      if (taken) throw new Error(`❌ tenants/${t.slug}: прежний адрес «${old}» уже занят студией «${taken}»`);
+      owners.set(old, t.slug);
+    }
+  }
+
   const publicEntries: Array<{slug: string; name: string; isSample: boolean}> = [];
 
   for (const tenant of tenants) {
