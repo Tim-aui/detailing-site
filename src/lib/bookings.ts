@@ -59,7 +59,9 @@ export function useCreateBooking() {
     },
     onSuccess: (result) => {
       // Цель Метрики: запись создана (повтор той же попытки не считаем).
-      if (!result?.repeated) reachGoal('booking_created', {price: Math.round((result?.price ?? 0) / 100)});
+      // В офлайн-режиме (createLocal) поля repeated нет — проверяем через in.
+      const repeated = 'repeated' in result && result.repeated === true;
+      if (!repeated) reachGoal('booking_created', {price: Math.round((result.price ?? 0) / 100)});
       qc.invalidateQueries({queryKey: ['my-bookings', slug]});
       qc.invalidateQueries({queryKey: ['busy', slug]});
     },
