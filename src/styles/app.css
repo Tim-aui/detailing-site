@@ -780,6 +780,19 @@
   }
 }
 
+/* Кабинет: цели для пальца не меньше 44px (Apple HIG / WCAG 2.5.5).
+   Вне @layer намеренно: стили дизайн-системы не должны перебить высоту. */
+@media (pointer: coarse), (max-width: 640px) {
+  main.admin button,
+  main.admin [role='tab'],
+  main.admin [role='radio'] {
+    min-height: 44px;
+  }
+  main.admin button {
+    min-width: 44px;
+  }
+}
+
 /* Ссылка внутри текста: подпись под галочкой согласия, политика. */
 .text-link {
   color: #4690ff;

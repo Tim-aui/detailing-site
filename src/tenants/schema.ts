@@ -170,13 +170,19 @@ export const studioSettingsSchema = z.object({
   legal: z
     .object({
       /** «ИП Иванов Иван Иванович» или «ООО „Ромашка“». */
-      operator: z.string().default(''),
-      inn: z.string().default(''),
-      ogrn: z.string().default(''),
+      operator: z.string().max(300).default(''),
+      inn: z.string().regex(/^(\d{10}|\d{12})?$/, 'ИНН — 10 цифр (организация) или 12 (ИП)').default(''),
+      ogrn: z.string().regex(/^(\d{13}|\d{15})?$/, 'ОГРН — 13 цифр, ОГРНИП — 15').default(''),
       /** Почта для запросов об удалении данных. */
-      email: z.string().default(''),
+      email: z.string().regex(/^([^@\s]+@[^@\s]+\.[^@\s]+)?$/, 'Проверьте e-mail').default(''),
     })
     .prefault({}),
+
+  /**
+   * Номер счётчика Яндекс.Метрики студии (только цифры). Пусто — счётчика нет.
+   * Владелец вводит его в кабинете: Настройки → Основное.
+   */
+  metrikaId: z.string().regex(/^\d{0,12}$/, 'Номер счётчика Метрики — только цифры').default(''),
 
   pwa: z
     .object({
@@ -199,7 +205,7 @@ export type WorkingHours = z.infer<typeof workingHoursSchema>;
  * Настройки, которые владелец может менять из кабинета.
  * Всё, что здесь не перечислено (slug, pwa, timezone) — служебное.
  * Тот же список проверяет сервер: owner_save_settings в миграции
- * 20260102000000_owner_cabinet.sql. Меняете здесь — поменяйте и там.
+ * 20261023000200_settings_legal_metrika.sql. Меняете здесь — поменяйте и там.
  */
 export const OWNER_EDITABLE_KEYS = [
   'name',
@@ -221,6 +227,8 @@ export const OWNER_EDITABLE_KEYS = [
   'infoCards',
   'cancellation',
   'assistantSuggestions',
+  'legal',
+  'metrikaId',
 ] as const;
 
 export type OwnerEditableKey = (typeof OWNER_EDITABLE_KEYS)[number];

@@ -143,6 +143,9 @@ export async function syncTenants() {
     // Иконки установки
     await writeIcons(tenant, outDir);
 
+    // Картинка для превью ссылки (WhatsApp, Telegram, VK): 1200×630.
+    await writeOgImage(tenant, outDir);
+
     // Манифест PWA: отдельный на каждый студию, чтобы «На экран Домой»
     // ставил приложение с правильным именем и иконкой.
     const branding = await loadBranding(tenant, tenantsDir + '/' + tenant.slug);
@@ -222,12 +225,81 @@ export const DEFAULT_TENANT_SLUG = TENANT_SEEDS[0].slug;
 `;
   await writeFile(path.join(generatedDir, 'registry.ts'), ts);
 
+  // Метаданные страниц для сборки: vite-плагин tenantSeoPages пишет
+  // dist/s/<slug>/…/index.html с title, description и og:* студии —
+  // мессенджеры и поисковики не выполняют JS и видят только этот HTML.
+  const site = siteUrl();
+  const seo = payload.map((e) => ({
+    slug: e.slug,
+    isSample: e.isSample,
+    previousSlugs: e.config.previousSlugs,
+    name: e.config.name,
+    description: seoDescription(e.config),
+    image: `${site}/tenants/${e.slug}/og.jpg`,
+    themeColor: e.config.pwa.themeColor,
+  }));
+  await writeFile(path.join(generatedDir, 'seo.json'), JSON.stringify({site, tenants: seo}, null, 2));
+
+  // sitemap.xml — только опубликованные студии.
+  const urls = payload
+    .filter((e) => !e.isSample)
+    .flatMap((e) => ['', 'services', 'booking', 'privacy'].map((p) => `${site}/s/${e.slug}/${p}`));
+  const sitemap =
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    urls.map((u) => `  <url><loc>${u}</loc></url>`).join('\n') +
+    '\n</urlset>\n';
+  await writeFile(path.join(root, 'public/sitemap.xml'), sitemap);
+  await writeFile(
+    path.join(root, 'public/robots.txt'),
+    `User-agent: *\nAllow: /\nDisallow: /s/*/admin\nDisallow: /sb/\n\nSitemap: ${site}/sitemap.xml\n`,
+  );
+
   // Шпаргалка: какие слоты что занимают — используется в тестах расписания.
   const slotMap = Object.fromEntries(tenants.map((t) => [t.slug, toSlotKey(t.config)]));
   await writeFile(path.join(generatedDir, 'slotmap.json'), JSON.stringify(slotMap, null, 2));
 
   console.log(`\nГотово: ${tenants.length} студия(ий), реестр → src/tenants/generated/registry.ts`);
   return tenants;
+}
+
+/** Адрес сайта для абсолютных ссылок og:image / sitemap / canonical. */
+function siteUrl(): string {
+  const fromEnv =
+    process.env.SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '');
+  return (fromEnv || 'https://zapisbox.vercel.app').replace(/\/$/, '');
+}
+
+function seoDescription(cfg: StudioSettings): string {
+  const text = cfg.description || cfg.tagline || `Онлайн-запись в ${cfg.name}`;
+  // Мессенджеры обрезают описание примерно на 160–200 символах.
+  return text.length > 180 ? `${text.slice(0, 177).trimEnd()}…` : text;
+}
+
+async function writeOgImage(tenant: TenantEntry, outDir: string) {
+  const W = 1200;
+  const H = 630;
+  const photos = path.join(tenantsDir, tenant.slug, 'photos');
+  const hero = path.join(photos, tenant.config.heroPhoto);
+  const branding = await loadBranding(tenant, path.join(tenantsDir, tenant.slug));
+  const shade = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">` +
+      `<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">` +
+      `<stop offset="0.45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.7"/>` +
+      `</linearGradient></defs><rect width="${W}" height="${H}" fill="url(#g)"/></svg>`,
+  );
+  const logo = await sharp(branding.logoPath).resize(150, 150, {fit: 'cover'}).png().toBuffer();
+  const base = (await exists(hero))
+    ? sharp(hero).resize(W, H, {fit: 'cover', position: 'attention'})
+    : sharp({create: {width: W, height: H, channels: 3, background: branding.background}});
+  await base
+    .composite([
+      {input: shade, top: 0, left: 0},
+      {input: logo, top: H - 150 - 48, left: 48},
+    ])
+    .jpeg({quality: 80, mozjpeg: true})
+    .toFile(path.join(outDir, 'og.jpg'));
 }
 
 async function rmrf(p: string) {

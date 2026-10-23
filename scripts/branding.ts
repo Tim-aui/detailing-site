@@ -53,7 +53,11 @@ export async function loadBranding(
   if (tenant.config.logo) {
     const custom = path.join(tenantDir, 'photos', tenant.config.logo);
     if (existsSync(custom)) {
-      return {logoPath: custom, background: bg, tint, generated: false};
+      // На сайте — лёгкий webp, а иконки 512×512 режем из исходника
+      // покрупнее (тот же файл .png рядом), чтобы они не мылились.
+      const original = custom.replace(/\.webp$/i, '.png');
+      const source = original !== custom && existsSync(original) ? original : custom;
+      return {logoPath: source, background: bg, tint, generated: false};
     }
   }
 

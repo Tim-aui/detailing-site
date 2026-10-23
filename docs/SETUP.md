@@ -25,6 +25,7 @@ pnpm supabase link --project-ref <ref>
 pnpm supabase db push                       # миграции supabase/migrations/*
 pnpm supabase functions deploy assistant --no-verify-jwt
 pnpm supabase functions deploy reminders --no-verify-jwt
+pnpm supabase functions deploy telegram --no-verify-jwt   # уведомления владельцу, см. docs/NOTIFICATIONS.md
 ```
 
 `--no-verify-jwt`: функции сами проверяют доступ (помощник владельца —

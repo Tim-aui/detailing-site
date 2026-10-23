@@ -1,0 +1,48 @@
+# Мониторинг базы (FIXES.md, блок 6): раз в 5 минут дёргаем studio_busy
+# так же, как сайт. Две неудачи подряд — сообщение в Telegram.
+#
+# Проверка снаружи Supabase намеренно: 23.10 база была недоступна из-за
+# DNS, и ничего внутри Supabase об этом бы не сообщило.
+#
+# Секреты репозитория (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL       https://<ref>.supabase.co
+#   SUPABASE_ANON_KEY  публичный sb_publishable_…
+#   TG_BOT_TOKEN       токен бота
+#   TG_ALERT_CHAT_ID   chat id, куда слать тревогу
+# GitHub не гарантирует точность расписания: интервал бывает 5–15 минут.
+name: uptime
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: studio_busy
+        env:
+          URL: ${{ secrets.SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          TG: ${{ secrets.TG_BOT_TOKEN }}
+          CHAT: ${{ secrets.TG_ALERT_CHAT_ID }}
+        run: |
+          check() {
+            curl -sS -o /dev/null -w '%{http_code}' --max-time 15 \
+              -X POST "$URL/rest/v1/rpc/studio_busy" \
+              -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
+              -d '{"p_tenant_slug":"bro-100"}' || echo 000
+          }
+          code=$(check)
+          if [ "$code" != "200" ]; then
+            sleep 30
+            code=$(check)
+          fi
+          echo "studio_busy → $code"
+          if [ "$code" != "200" ]; then
+            curl -sS --max-time 15 "https://api.telegram.org/bot$TG/sendMessage" \
+              --data-urlencode "chat_id=$CHAT" \
+              --data-urlencode "text=⚠️ База записи не отвечает: studio_busy → $code ($(date -u +%H:%M) UTC)" >/dev/null
+            exit 1
+          fi

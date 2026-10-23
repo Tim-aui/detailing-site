@@ -11,9 +11,10 @@
  * Прямых SELECT/INSERT в bookings нет — RLS закрыт.
  */
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
-import {isSupabaseConfigured, supabase} from './supabase.ts';
+import {invokePublic, isSupabaseConfigured, rpcPublic} from './publicApi.ts';
 import {useTenant} from '../tenants/TenantContext.tsx';
 import type {BookingDraft, BookingRow} from './types.ts';
+import {reachGoal} from './metrika.ts';
 
 export function useMyBookings() {
   const {slug} = useTenant();
@@ -23,7 +24,7 @@ export function useMyBookings() {
       if (!isSupabaseConfigured) return readLocal(slug);
       const phone = localStorage.getItem(`studio:phone:${slug}`) ?? '';
       if (!phone) return [];
-      const {data, error} = await supabase().rpc('my_bookings', {
+      const {data, error} = await rpcPublic<any>('my_bookings', {
         p_tenant_slug: slug,
         p_phone: phone,
       });
@@ -39,7 +40,7 @@ export function useCreateBooking() {
   return useMutation({
     mutationFn: async (draft: BookingDraft) => {
       if (!isSupabaseConfigured) return createLocal(slug, draft);
-      const {data, error} = await supabase().rpc('create_booking', {
+      const {data, error} = await rpcPublic<any>('create_booking', {
         p_tenant_slug: slug,
         p_service_id: draft.serviceId,
         p_start: draft.startUtc,
@@ -54,9 +55,11 @@ export function useCreateBooking() {
       if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
       if (draft.contactPhone) localStorage.setItem(`studio:phone:${slug}`, draft.contactPhone);
-      return data as {code: string; id: string; startUtc: string; endUtc: string; serviceName: string; price: number};
+      return data as {code: string; id: string; startUtc: string; endUtc: string; serviceName: string; price: number; repeated?: boolean};
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      // Цель Метрики: запись создана (повтор той же попытки не считаем).
+      if (!result?.repeated) reachGoal('booking_created', {price: Math.round((result?.price ?? 0) / 100)});
       qc.invalidateQueries({queryKey: ['my-bookings', slug]});
       qc.invalidateQueries({queryKey: ['busy', slug]});
     },
@@ -70,7 +73,7 @@ export function useCancelBooking() {
     mutationFn: async ({code}: {code: string}) => {
       if (!isSupabaseConfigured) return cancelLocal(slug, code);
       const phone = localStorage.getItem(`studio:phone:${slug}`) ?? '';
-      const {data, error} = await supabase().rpc('cancel_booking', {
+      const {data, error} = await rpcPublic<any>('cancel_booking', {
         p_tenant_slug: slug,
         p_code: code,
         p_phone: phone,
@@ -95,7 +98,7 @@ export function useStudioFreeSlots(serviceId: string | null, from?: string, to?:
     queryKey: ['free-slots', slug, serviceId, from, to],
     enabled: isSupabaseConfigured && !!serviceId,
     queryFn: async () => {
-      const {data, error} = await supabase().rpc('studio_free_slots', {
+      const {data, error} = await rpcPublic<any>('studio_free_slots', {
         p_tenant_slug: slug,
         p_service_id: serviceId,
         p_from: from,
@@ -120,14 +123,22 @@ export function useAssistant(mode: 'client' | 'owner' = 'client') {
   return useMutation({
     mutationFn: async ({question, history}: {question: string; history: ChatMessage[]}) => {
       if (!isSupabaseConfigured) throw new Error('Помощник подключается после настройки базы');
-      const {data, error} = await supabase().functions.invoke('assistant', {
-        body: {tenant_slug: slug, question, mode, history: history.slice(-8)},
-      });
-      if (error) {
-        // Текст ошибки функции лежит в теле ответа.
-        const body = await (error as {context?: Response}).context?.json?.().catch(() => null);
-        throw new Error(body?.error ?? error.message);
+      const body = {tenant_slug: slug, question, mode, history: history.slice(-8)};
+      if (mode === 'owner') {
+        // Владельцу нужна сессия — клиент supabase-js грузим только здесь
+        // (кабинет и так его уже загрузил).
+        const {supabase} = await import('./supabase.ts');
+        const {data, error} = await supabase().functions.invoke('assistant', {body});
+        if (error) {
+          // Текст ошибки функции лежит в теле ответа.
+          const errBody = await (error as {context?: Response}).context?.json?.().catch(() => null);
+          throw new Error(errBody?.error ?? error.message);
+        }
+        if (data?.error) throw new Error(data.error);
+        return data as {answer: string};
       }
+      const {data, error} = await invokePublic<{answer: string; error?: string}>('assistant', body);
+      if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
       return data as {answer: string};
     },
@@ -161,7 +172,7 @@ export async function subscribeReminder(slug: string, code: string, phone: strin
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY as string),
     }));
-  const {data, error} = await supabase().rpc('subscribe_reminder', {
+  const {data, error} = await rpcPublic<any>('subscribe_reminder', {
     p_tenant_slug: slug,
     p_code: code,
     p_phone: phone,
@@ -198,9 +209,26 @@ function writeLocal(slug: string, rows: BookingRow[]) {
   localStorage.setItem(LS(slug), JSON.stringify(rows));
 }
 
+/** Тот же алфавит и длина, что у new_booking_code в базе: без 0/O/1/I/L. */
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+export function bookingCode(length = 8): string {
+  let out = '';
+  const buf = new Uint8Array(16);
+  while (out.length < length) {
+    crypto.getRandomValues(buf);
+    for (const b of buf) {
+      // 248 = 31 × 8: отбрасываем хвост, чтобы символы выпадали равновероятно.
+      if (b < 248) out += CODE_ALPHABET[b % CODE_ALPHABET.length];
+      if (out.length === length) break;
+    }
+  }
+  return out;
+}
+
 function createLocal(slug: string, draft: BookingDraft) {
   const rows = readLocal(slug);
-  const code = Math.random().toString(36).slice(2, 6).toUpperCase();
+  const code = bookingCode();
   const row: BookingRow = {
     id: crypto.randomUUID(),
     code,

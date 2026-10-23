@@ -46,12 +46,14 @@ export function StudioIsSample({slug}: {slug: string}) {
       <Badge variant="warning" label="Образец" />
       <Heading level={2}>Студия ещё не опубликована</Heading>
       <Text type="body" color="secondary">
-        <code>/s/{slug}/</code> — это черновик. Он заработает, когда данные проверят и студию
-        опубликуют.
+        Страница студии готовится и скоро откроется. Записаться пока можно по телефону студии.
       </Text>
-      <Text type="supporting" color="disabled">
-        Опубликовать: <code>pnpm tenant:publish --slug {slug}</code>
-      </Text>
+      {import.meta.env.DEV ? (
+        // Подсказка разработчику — только в dev-сборке, на сайте её нет.
+        <Text type="supporting" color="disabled">
+          Опубликовать: <code>pnpm tenant:publish --slug {slug}</code>
+        </Text>
+      ) : null}
     </VStack>
   );
 }

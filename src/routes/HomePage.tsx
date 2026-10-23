@@ -65,7 +65,7 @@ export function HomePage() {
 
         <div className="shell hero__inner">
           <VStack gap={3}>
-            {cfg.logo ? <img className="hero__logo" src={photoUrl(slug, cfg.logo)} alt={`Логотип ${cfg.name}`} /> : null}
+            {cfg.logo ? <img className="hero__logo" src={photoUrl(slug, cfg.logo)} alt={`Логотип ${cfg.name}`} width={56} height={56} decoding="async" /> : null}
             {/* Обёртка не даёт бейджу растянуться на всю ширину VStack. */}
             <div style={{alignSelf: 'flex-start'}}>
               {isOpenNow(cfg) ? (

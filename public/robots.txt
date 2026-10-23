@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /s/*/admin
+Disallow: /sb/
+
+Sitemap: https://zapisbox.vercel.app/sitemap.xml
