@@ -455,7 +455,7 @@ function NewBookingDialog({settings, defaultDate, onClose}: {settings: StudioSet
         <TextInput label="Машина" value={car} onChange={setCar} />
         <TextArea label="Комментарий" value={comment} onChange={setComment} size="sm" />
         <Text type="supporting" color="secondary">
-          Сервер проверит, свободен ли бокс, и подтвердит запись сразу.
+          Проверим, свободен ли бокс, и подтвердим запись сразу.
         </Text>
         <Button label="Добавить запись" variant="primary" size="lg" isDisabled={!valid} isLoading={create.isPending} clickAction={submit} />
       </VStack>

@@ -51,7 +51,11 @@ grant select on t_at to anon, authenticated;
 set role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
 
-select pg_temp.ok((select count(*) from public.bookings) = 0, 'anon не видит таблицу записей');
+select pg_temp.throws($$select count(*) from public.bookings$$, 'permission denied', 'anon не видит таблицу записей');
+select pg_temp.throws($$select count(*) from public.tenants$$, 'permission denied', 'anon не читает таблицу студий (1.1)');
+select pg_temp.throws($$select count(*) from public.tenant_settings$$, 'permission denied', 'anon не читает правки владельца напрямую');
+select pg_temp.throws($$select public.studio_config('demo')$$, 'permission denied', 'полный конфиг анониму не отдаётся');
+select pg_temp.ok((public.studio_patch('demo')) is not null, 'studio_patch анониму доступен');
 
 -- Бокса три (box-3 без длинных работ). Занимаем все три на 10:00.
 select pg_temp.ok((public.create_booking('demo', 'wax', (select t10 from t_at), 'Иван', '+7 900 000-00-01', 'BMW', '', gen_random_uuid()) ->> 'boxId') = 'box-1', 'запись №1 → box-1');
@@ -234,6 +238,112 @@ select set_config('request.jwt.claims', '{"role":"authenticated","sub":"00000000
 select pg_temp.ok((public.owner_create_booking('demo', 'wax', (select t10 from t_at) + interval '7 days 3 hours', 'Лимит', '+7 911 222-33-44') ->> 'code') is not null,
   'владелец может добавить вторую запись тому же клиенту на тот же день');
 reset role;
+
+-- ===================== 20261023: безопасность =====================
+set role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+
+-- 1.3 код записи
+create temp table t_newcode as select public.create_booking('demo', 'wax', (select t10 from t_at) + interval '12 days', 'Код', '+7 922 000-00-01') as r;
+grant select on t_newcode to anon, authenticated;
+select pg_temp.ok(length((select r ->> 'code' from t_newcode)) = 8, 'код записи — 8 символов');
+select pg_temp.ok((select r ->> 'code' from t_newcode) ~ '^[ABCDEFGHJKMNPQRSTUVWXYZ2-9]{8}$', 'в коде нет 0/O/1/I/L');
+
+-- 1.6 прошедшее время
+select pg_temp.throws($$select public.create_booking('demo', 'wax', now() - interval '1 day', 'Вчера', '+7 922 000-00-02')$$,
+  'Нельзя записать на прошедшее время', 'клиент: запись на вчера отклонена');
+reset role;
+select pg_temp.ok(not exists (select 1 from public.bookings where contact_name = 'Вчера'), 'и записи в базе нет');
+set role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"00000000-0000-0000-0000-00000000000a"}', true);
+select pg_temp.throws($$select public.owner_create_booking('demo', 'wax', date_trunc('day', now()) - interval '1 day' + interval '7 hours', 'Утро', '+7 922 000-00-03')$$,
+  'Нельзя записать на прошедшее время', 'владелец: запись на прошедшее утро отклонена');
+select pg_temp.throws($$select public.owner_reschedule_booking((select (r ->> 'id')::uuid from t_newcode), now() - interval '2 hours')$$,
+  'Нельзя записать на прошедшее время', 'владелец: перенос в прошлое отклонён');
+reset role;
+
+-- 1.4 лимиты
+set role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+do $$ begin for i in 1..20 loop perform public.my_bookings('demo', '+7 933 000-00-00'); end loop; end $$;
+select pg_temp.throws($$select public.my_bookings('demo', '+7 933 000-00-00')$$, 'Слишком много запросов', 'my_bookings: 21-й запрос по номеру за час отклонён');
+
+do $$ begin for i in 1..10 loop perform public.cancel_booking('demo', 'NOPE' || i, '+7 933 000-00-01'); end loop; end $$;
+select pg_temp.throws($$select public.cancel_booking('demo', 'NOPE', '+7 933 000-00-01')$$, 'Слишком много неудачных', 'cancel: 11-я неудачная попытка отклонена');
+
+-- Создал-отменил в цикле: шестая запись с номера за час — отказ.
+do $$
+declare r jsonb;
+begin
+  for i in 1..5 loop
+    r := public.create_booking('demo', 'wax', ((now() at time zone 'Europe/Moscow')::date + 20 + i)::timestamp at time zone 'Europe/Moscow' + interval '10 hours', 'Цикл', '+7 933 000-00-02');
+    perform public.cancel_booking('demo', r ->> 'code', '+7 933 000-00-02');
+  end loop;
+end $$;
+select pg_temp.throws($$select public.create_booking('demo', 'wax', ((now() at time zone 'Europe/Moscow')::date + 27)::timestamp at time zone 'Europe/Moscow' + interval '10 hours', 'Цикл', '+7 933 000-00-02')$$,
+  'Слишком много записей с этого номера', 'create: шестая запись с номера за час отклонена');
+
+-- Лимит по IP (заголовок как от PostgREST).
+select set_config('request.headers', '{"cf-connecting-ip":"203.0.113.7"}', true);
+do $$ begin for i in 1..60 loop perform public.my_bookings('demo', '+7 944 000-00-' || lpad(i::text, 2, '0')); end loop; end $$;
+select pg_temp.throws($$select public.my_bookings('demo', '+7 944 000-00-99')$$, 'Слишком много запросов', 'my_bookings: перебор номеров с одного IP остановлен');
+select set_config('request.headers', '{"cf-connecting-ip":"203.0.113.8"}', true);
+select pg_temp.ok((select count(*) from public.my_bookings('demo', '+7 944 000-00-99')) = 0, 'другой IP не задет');
+select set_config('request.headers', '', true);
+reset role;
+
+-- 1.5 search_path у всех SECURITY DEFINER
+select pg_temp.ok(not exists (
+  select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.prosecdef
+    and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%pg_temp%')
+), 'у всех SECURITY DEFINER search_path с pg_temp');
+select pg_temp.ok(not has_function_privilege('anon', 'public.insert_booking_core(text,jsonb,text,timestamptz,text,text,text,text,uuid,text,boolean)', 'execute'),
+  'anon не вызывает insert_booking_core');
+select pg_temp.ok(not has_function_privilege('anon', 'public.rate_allow(text,text,int,interval,boolean)', 'execute'),
+  'anon не трогает счётчик лимитов');
+
+-- ===================== 20261023: уведомления и реквизиты =====================
+set role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"00000000-0000-0000-0000-00000000000a"}', true);
+select pg_temp.ok((public.owner_notify_status('demo') ->> 'telegramLinked')::boolean = false, 'telegram: пока не подключён');
+create temp table t_tg as select public.owner_telegram_link('demo') ->> 'token' as token;
+grant select on t_tg to anon, authenticated, service_role;
+select pg_temp.ok(length((select token from t_tg)) = 32, 'telegram: токен для ссылки выдан');
+select pg_temp.throws($$select public.telegram_bind((select token from t_tg), 42)$$, 'permission denied', 'владелец не привязывает чат в обход бота');
+select pg_temp.throws($$select public.owner_save_settings('demo', '{"legal":{"operator":"ИП Тест","inn":"123","ogrn":"","email":""}}')$$, 'ИНН', 'ИНН из 3 цифр отклонён');
+select pg_temp.throws($$select public.owner_save_settings('demo', '{"legal":{"operator":"ИП Тест","inn":"123456789012","ogrn":"12345","email":""}}')$$, 'ОГРН', 'ОГРН из 5 цифр отклонён');
+select pg_temp.ok((public.owner_save_settings('demo', '{"legal":{"operator":"ИП Тест","inn":"123456789012","ogrn":"123456789012345","email":"pd@test.ru"},"metrikaId":"98765432"}') ->> 'ok')::boolean, 'реквизиты и Метрика сохранены');
+select pg_temp.throws($$select public.owner_save_settings('demo', '{"metrikaId":"abc"}')$$, 'Метрики', 'номер Метрики с буквами отклонён');
+reset role;
+set role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"00000000-0000-0000-0000-00000000000b"}', true);
+select pg_temp.throws($$select public.owner_telegram_link('demo')$$, 'только владелец', 'чужой владелец не подключает Telegram к demo');
+reset role;
+set role anon;
+select pg_temp.throws($$select public.owner_notify_status('demo')$$, 'permission denied', 'аноним не видит настройки уведомлений');
+reset role;
+
+set role service_role;
+select pg_temp.ok((public.telegram_bind('wrong-token', 42) ->> 'ok')::boolean = false, 'telegram: чужой токен не привязывает');
+select pg_temp.ok((public.telegram_bind((select token from t_tg), 4242) ->> 'slug') = 'demo', 'telegram: бот привязал чат по токену');
+select pg_temp.ok((public.telegram_bind((select token from t_tg), 9999) ->> 'ok')::boolean = false, 'telegram: токен одноразовый');
+reset role;
+-- Запись создаётся с подключённым чатом: без Vault и pg_net триггер молча пропускает отправку.
+set role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+create temp table t_tgb as select public.create_booking('demo', 'wax', (select t10 from t_at) + interval '13 days', 'Телеграм', '+7 955 000-00-01') as r;
+grant select on t_tgb to service_role;
+reset role;
+set role service_role;
+select pg_temp.ok((public.telegram_booking((select (r ->> 'id')::uuid from t_tgb)) ->> 'chatId') = '4242', 'telegram: данные записи для сообщения');
+select pg_temp.ok((public.telegram_set_status((select (r ->> 'id')::uuid from t_tgb), 1, 'confirmed') ->> 'ok')::boolean = false, 'telegram: кнопка из чужого чата не работает');
+select pg_temp.ok((public.telegram_set_status((select (r ->> 'id')::uuid from t_tgb), 4242, 'confirmed') ->> 'ok')::boolean, 'telegram: «Подтвердить» из чата студии');
+select pg_temp.ok((public.telegram_set_status((select (r ->> 'id')::uuid from t_tgb), 4242, 'confirmed') ->> 'ok')::boolean = false, 'telegram: повторное подтверждение не ломает статус');
+select pg_temp.ok((public.telegram_set_status((select (r ->> 'id')::uuid from t_tgb), 4242, 'done') ->> 'ok')::boolean = false, 'telegram: «выполнено» из бота нельзя');
+select pg_temp.ok((public.telegram_set_status((select (r ->> 'id')::uuid from t_tgb), 4242, 'cancelled') ->> 'ok')::boolean, 'telegram: «Отменить» из чата студии');
+reset role;
+select pg_temp.ok((select status from public.bookings where id = (select (r ->> 'id')::uuid from t_tgb)) = 'cancelled', 'telegram: статус в базе обновлён');
 
 rollback;
 \echo 'ВСЕ ПРОВЕРКИ БАЗЫ ПРОЙДЕНЫ'

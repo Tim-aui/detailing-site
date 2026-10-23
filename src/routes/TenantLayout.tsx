@@ -9,6 +9,7 @@ import {seedFor, useStudio} from '../lib/studio.ts';
 import {useSlugParam} from '../tenants/TenantContext.tsx';
 import {TenantProvider} from '../tenants/TenantContext.tsx';
 import {useTenantBranding} from '../tenants/useTenantBranding.ts';
+import {useMetrika} from '../lib/metrika.ts';
 
 /**
  * Каркас студии: общий для всех страниц /s/<slug>/*.
@@ -24,6 +25,8 @@ export function TenantLayout() {
   const toast = useToast();
 
   useTenantBranding();
+  // Счётчик студии (номер — в настройках кабинета). Черновику не нужен.
+  useMetrika(seed && !seed.isSample ? (settings ?? seed.config).metrikaId : null);
 
   // liquid-gl здесь больше не подключаем: библиотека ставит целевым
   // элементам pointer-events:none, opacity:0 и background:transparent,

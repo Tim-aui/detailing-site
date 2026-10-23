@@ -255,6 +255,34 @@ export function useOwnerCreateBooking(slug: string) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Уведомления в Telegram (миграция 20261023000100_owner_notifications.sql)
+// ---------------------------------------------------------------------------
+
+/** Имя бота без @ — публичное, кладётся в VITE_TELEGRAM_BOT_USERNAME. */
+export const TELEGRAM_BOT = (import.meta.env.VITE_TELEGRAM_BOT_USERNAME as string | undefined)?.replace(/^@/, '') ?? '';
+
+export function useNotifyStatus(slug: string) {
+  return useQuery({
+    queryKey: ['owner', 'notify', slug],
+    enabled: isSupabaseConfigured,
+    // Владелец уходит в Telegram и возвращается — статус надо перечитать.
+    refetchOnWindowFocus: true,
+    queryFn: () => rpc<{telegramLinked: boolean; telegramLinkedAt: string | null}>('owner_notify_status', {p_tenant_slug: slug}),
+  });
+}
+
+/** Одноразовая ссылка t.me/<бот>?start=<токен>, живёт час. */
+export async function telegramLinkUrl(slug: string): Promise<string> {
+  if (!TELEGRAM_BOT) throw new Error('Бот не настроен: задайте VITE_TELEGRAM_BOT_USERNAME');
+  const {token} = await rpc<{token: string}>('owner_telegram_link', {p_tenant_slug: slug});
+  return `https://t.me/${TELEGRAM_BOT}?start=${token}`;
+}
+
+export function useTelegramUnlink(slug: string) {
+  return useOwnerMutation(slug, () => rpc('owner_telegram_unlink', {p_tenant_slug: slug}));
+}
+
 /** Сохраняет только переданные ключи — остальные правки не трогает. */
 export function useSaveSettings(slug: string) {
   const qc = useQueryClient();

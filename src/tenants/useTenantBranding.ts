@@ -24,7 +24,7 @@ export function useTenantBranding() {
     const {name, pwa} = seed.config;
     const base = `/tenants/${slug}`;
 
-    document.title = `${name} — запись`;
+    document.title = `${name} — онлайн-запись`;
 
     setLink('manifest', `${base}/manifest.webmanifest`, 'manifest');
     setLink('apple-touch-icon', `${base}/apple-touch-icon.png`);

@@ -13,6 +13,7 @@ import {Switch} from '@astryxdesign/core/Switch';
 import {Selector} from '@astryxdesign/core/Selector';
 import {Banner} from '@astryxdesign/core/Banner';
 import {Token} from '@astryxdesign/core/Token';
+import {StatusDot} from '@astryxdesign/core/StatusDot';
 import {Divider} from '@astryxdesign/core/Divider';
 import {TabList, Tab} from '@astryxdesign/core/TabList';
 import {useToast} from '@astryxdesign/core/Toast';
@@ -25,7 +26,7 @@ import {
   type StudioSettings,
 } from '../../tenants/schema.ts';
 import {ICON_NAMES, IconByName} from '../../components/icons.tsx';
-import {uploadStudioPhoto, useSaveSettings} from '../../lib/owner.ts';
+import {TELEGRAM_BOT, telegramLinkUrl, uploadStudioPhoto, useNotifyStatus, useSaveSettings, useTelegramUnlink} from '../../lib/owner.ts';
 import {timeFromMinutes} from '../../lib/schedule.ts';
 import {DateField} from './AdminBookings.tsx';
 
@@ -56,7 +57,7 @@ export function AdminSettings() {
         ))}
       </TabList>
       {/* key: после сохранения форма берёт свежие данные с сервера. */}
-      {tab === 'main' ? <MainTab key={stamp(settings, ['name', 'phone', 'address', 'heroPhoto', 'logo'])} settings={settings} /> : null}
+      {tab === 'main' ? <MainTab key={stamp(settings, ['name', 'phone', 'address', 'heroPhoto', 'logo', 'legal', 'metrikaId'])} settings={settings} /> : null}
       {tab === 'services' ? <ServicesTab key={stamp(settings, ['services'])} settings={settings} /> : null}
       {tab === 'schedule' ? <ScheduleTab key={stamp(settings, ['hours', 'boxes', 'closedDates'])} settings={settings} /> : null}
       {tab === 'cards' ? <CardsTab key={stamp(settings, ['infoCards'])} settings={settings} /> : null}
@@ -121,9 +122,14 @@ function MainTab({settings}: {settings: StudioSettings}) {
   const [phone, setPhone] = useState(settings.phone);
   const [address, setAddress] = useState(settings.address);
   const [suggestions, setSuggestions] = useState(settings.assistantSuggestions);
+  const [legal, setLegal] = useState(settings.legal);
+  const [metrikaId, setMetrikaId] = useState(settings.metrikaId);
+  const digits = (v: string) => v.replace(/\D/g, '');
 
   return (
     <VStack gap={4}>
+      <NotifyCard />
+
       <Grid columns={{minWidth: 280}} gap={4}>
         <PhotoCard
           title="Главное фото"
@@ -164,6 +170,38 @@ function MainTab({settings}: {settings: StudioSettings}) {
         </VStack>
       </Card>
 
+      <Card padding={4}>
+        <VStack gap={3}>
+          <Heading level={3}>Реквизиты</Heading>
+          <Text type="supporting" color="secondary">
+            Подставляются в политику обработки персональных данных на сайте. Пустые поля на сайте не показываются.
+          </Text>
+          <TextInput
+            label="Оператор персональных данных"
+            value={legal.operator}
+            onChange={(v) => setLegal({...legal, operator: v})}
+            description="Например: ИП Иванов Иван Иванович или ООО «Ромашка»"
+          />
+          <Grid columns={{minWidth: 200}} gap={3}>
+            <TextInput label="ИНН" value={legal.inn} onChange={(v) => setLegal({...legal, inn: digits(v)})} description="10 цифр у организации, 12 у ИП" />
+            <TextInput label="ОГРН / ОГРНИП" value={legal.ogrn} onChange={(v) => setLegal({...legal, ogrn: digits(v)})} description="13 цифр ОГРН, 15 ОГРНИП" />
+          </Grid>
+          <TextInput label="E-mail для запросов по данным" value={legal.email} onChange={(v) => setLegal({...legal, email: v.trim()})} />
+        </VStack>
+      </Card>
+
+      <Card padding={4}>
+        <VStack gap={3}>
+          <Heading level={3}>Яндекс.Метрика</Heading>
+          <TextInput
+            label="Номер счётчика"
+            value={metrikaId}
+            onChange={(v) => setMetrikaId(digits(v))}
+            description="Только цифры, например 98765432. Пусто — статистика не собирается. Цель записи: booking_created."
+          />
+        </VStack>
+      </Card>
+
       {settings.assistantEnabled ? (
       <Card padding={4}>
         <VStack gap={3}>
@@ -196,12 +234,79 @@ function MainTab({settings}: {settings: StudioSettings}) {
             description,
             phone: phone.trim(),
             address,
+            legal,
+            metrikaId,
             // Подсказки сохраняем, только когда их видно (помощник включён).
             ...(settings.assistantEnabled ? {assistantSuggestions: suggestions.map((s) => s.trim()).filter(Boolean)} : {}),
           })
         }
       />
     </VStack>
+  );
+}
+
+/**
+ * Уведомления о новых записях в Telegram владельца. Привязка — по
+ * одноразовой ссылке на бота: chat id руками вводить не нужно.
+ */
+function NotifyCard() {
+  const {slug} = useTenant();
+  const status = useNotifyStatus(slug);
+  const unlink = useTelegramUnlink(slug);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const linked = status.data?.telegramLinked ?? false;
+
+  const connect = async () => {
+    setError(null);
+    setBusy(true);
+    // Окно открываем сразу, по клику: после await браузер счёл бы его
+    // всплывающим и заблокировал (особенно Safari на iPhone).
+    const win = window.open('about:blank', '_blank');
+    try {
+      const url = await telegramLinkUrl(slug);
+      if (win) win.location.href = url;
+      else window.location.href = url;
+    } catch (e) {
+      win?.close();
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card padding={4}>
+      <VStack gap={3}>
+        <HStack gap={2} vAlign="center" justify="between" wrap="wrap">
+          <Heading level={3}>Уведомления в Telegram</Heading>
+          <StatusDot variant={linked ? 'success' : 'neutral'} label={linked ? 'Подключено' : 'Не подключено'} />
+        </HStack>
+        <Text type="supporting" color="secondary">
+          {linked
+            ? 'Новые записи и отмены приходят в Telegram. Подтверждать и отменять можно прямо из сообщения.'
+            : 'Нажмите «Подключить», в Telegram откроется бот студии — нажмите в нём «Старт». Ссылка действует час.'}
+        </Text>
+        {error ? <Banner status="error" title="Не получилось" description={error} /> : null}
+        {!TELEGRAM_BOT ? (
+          <Text type="supporting" color="secondary">
+            Бот ещё не настроен: нужна переменная VITE_TELEGRAM_BOT_USERNAME (docs/NOTIFICATIONS.md).
+          </Text>
+        ) : null}
+        <HStack gap={2} wrap="wrap">
+          <Button
+            label={linked ? 'Подключить другой чат' : 'Подключить Telegram'}
+            variant={linked ? 'secondary' : 'primary'}
+            isLoading={busy}
+            isDisabled={!TELEGRAM_BOT}
+            clickAction={connect}
+          />
+          {linked ? (
+            <Button label="Отключить" variant="ghost" isLoading={unlink.isPending} clickAction={() => unlink.mutate(undefined)} />
+          ) : null}
+        </HStack>
+      </VStack>
+    </Card>
   );
 }
 

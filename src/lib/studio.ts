@@ -12,7 +12,7 @@
 import {useQuery, type UseQueryResult} from '@tanstack/react-query';
 import {TENANT_SEEDS} from '../tenants/generated/registry.ts';
 import {mergeTenantConfig, type StudioSettings} from '../tenants/schema.ts';
-import {isSupabaseConfigured, supabase} from './supabase.ts';
+import {isSupabaseConfigured, rpcPublic} from './publicApi.ts';
 import type {BusyBlock} from './schedule.ts';
 import {useTenant} from '../tenants/TenantContext.tsx';
 
@@ -44,7 +44,7 @@ export function useStudio(slug: string): UseQueryResult<StudioSettings, Error> {
       // Раньше здесь был select по несуществующей колонке `slug` (в таблице
       // она называется tenant_slug) — запрос всегда падал, и правки
       // владельца на сайте не появлялись никогда.
-      const {data, error} = await supabase().rpc('studio_patch', {p_tenant_slug: slug});
+      const {data, error} = await rpcPublic('studio_patch', {p_tenant_slug: slug});
       if (error) {
         // Недоступная база не должна ломать просмотр студии:
         // показываем то, что гарантированно есть, — файл.
@@ -67,7 +67,7 @@ export function useBusy(slug: string, horizonDays: number): UseQueryResult<BusyB
       // Таблица bookings закрыта RLS, прямой select из браузера всегда
       // возвращал пусто — занятое время не отмечалось. studio_busy отдаёт
       // только интервалы и бокс, без имён и телефонов.
-      const {data, error} = await supabase().rpc('studio_busy', {p_tenant_slug: slug});
+      const {data, error} = await rpcPublic('studio_busy', {p_tenant_slug: slug});
       if (error) throw new Error(error.message);
       return ((data ?? []) as Array<{box_id: string; starts_at: string; ends_at: string; status: BusyBlock['status']}>).map(
         (b, i) => ({

@@ -1,6 +1,7 @@
 import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
 import {VitePWA} from 'vite-plugin-pwa';
+import {tenantSeoPages} from './scripts/vite-tenant-seo.ts';
 
 /**
  * Оболочка сборки.
@@ -16,15 +17,20 @@ import {VitePWA} from 'vite-plugin-pwa';
 export default defineConfig({
   plugins: [
     react(),
+    // dist/s/<slug>/…/index.html с title/og:* студии (см. scripts/vite-tenant-seo.ts).
+    tenantSeoPages(),
     VitePWA({
       // Манифест и иконки подставляются на клиенте per-tenant:
       // у каждой студии своё имя и свой логотип.
       injectRegister: null,
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'robots.txt'],
       manifest: false,
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        // Копии index.html для студий (ради og:*) кэшировать не нужно:
+        // офлайн-навигацию обслуживает общий /index.html.
+        globIgnores: ['s/**', 'tenants/**/og.jpg'],
         // Страницы приложения — network-first с офлайн-запасом.
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/tenants\//, /^\/sb\//],
