@@ -26,7 +26,6 @@ import {dayWindow, timeFromMinutes} from '../../lib/schedule.ts';
 import {money, studioDate, studioTime, duration} from '../../lib/format.ts';
 import {LoadingIndicator} from '../../components/LoadingIndicator.tsx';
 import {
-import {PHONE_INPUT_PROPS, isFullPhone, nextPhoneValue, phoneHint} from '../../lib/phone.ts';
   periodFor,
   shiftDate,
   todayIn,
@@ -38,6 +37,7 @@ import {PHONE_INPUT_PROPS, isFullPhone, nextPhoneValue, phoneHint} from '../../l
   useSetStatus,
   type OwnerBooking,
 } from '../../lib/owner.ts';
+import {PHONE_INPUT_PROPS, isFullPhone, nextPhoneValue, phoneHint} from '../../lib/phone.ts';
 
 const ACTIVE = new Set<OwnerBooking['status']>(['pending', 'confirmed', 'in_progress']);
 
