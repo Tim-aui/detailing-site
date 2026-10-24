@@ -23,7 +23,9 @@ export default defineConfig({
       // Манифест и иконки подставляются на клиенте per-tenant:
       // у каждой студии своё имя и свой логотип.
       injectRegister: null,
-      registerType: 'prompt',
+      // Новая версия включается сразу; вкладка перезагружается при переходе
+      // (см. src/lib/pwa.ts). Раньше было 'prompt', но подсказку никто не показывал.
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'robots.txt'],
       manifest: false,
       workbox: {
@@ -35,6 +37,8 @@ export default defineConfig({
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/tenants\//, /^\/sb\//],
         cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
         // Напоминания о записи (web push) — обработчик в public/sw-push.js.
         importScripts: ['/sw-push.js'],
         runtimeCaching: [

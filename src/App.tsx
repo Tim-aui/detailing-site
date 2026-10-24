@@ -8,6 +8,7 @@ import {TenantLayout} from './routes/TenantLayout.tsx';
 import {LoadingIndicator} from './components/LoadingIndicator.tsx';
 import {HomePage} from './routes/HomePage.tsx';
 import {allSeeds, renamedSeedFor} from './lib/studio.ts';
+import {useReloadOnUpdate} from './lib/pwa.ts';
 
 // Главная входит в первый экран и грузится сразу. Остальное — по клику:
 // страницы записи и помощника заметно тяжелее, а человеку они нужны
@@ -27,6 +28,8 @@ const AssistantPage = lazy(() => import('./routes/AssistantPage.tsx').then((m) =
  * пути, slug разбирает клиент.
  */
 export function App() {
+  // Вышла новая версия сайта — подхватываем её при переходе между страницами.
+  useReloadOnUpdate();
   const moved = useRenamedStudio();
   if (moved) return <Navigate to={moved} replace />;
   return (

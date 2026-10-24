@@ -19,6 +19,7 @@ import {ru} from 'date-fns/locale';
 import {IconByName} from '../components/icons.tsx';
 import {ReminderOffer} from '../components/ReminderOffer.tsx';
 import {LoadingIndicator} from '../components/LoadingIndicator.tsx';
+import {PHONE_INPUT_PROPS, formatPhone, isFullPhone, nextPhoneValue, phoneHint} from '../lib/phone.ts';
 
 // Стабильная ссылка: `= []` в деструктуризации создаёт новый массив на
 // каждый рендер, из-за чего пересчитывались слоты и сбрасывалось время.
@@ -65,7 +66,7 @@ export function BookingPage() {
   const [slot, setSlot] = useState<FreeSlot | null>(null);
 
   const [name, setName] = useState(() => localStorage.getItem('studio:name') ?? '');
-  const [phone, setPhone] = useState(() => localStorage.getItem(`studio:phone:${slug}`) ?? '');
+  const [phone, setPhone] = useState(() => formatPhone(localStorage.getItem(`studio:phone:${slug}`) ?? ''));
   const [car, setCar] = useState(() => localStorage.getItem('studio:car') ?? '');
   const [comment, setComment] = useState('');
   const [touched, setTouched] = useState(false);
@@ -109,16 +110,16 @@ export function BookingPage() {
   const create = useCreateBooking();
 
   const nameError = touched && name.trim().length < 2 ? 'Как к вам обращаться?' : undefined;
-  const phoneError = touched && !isPhone(phone) ? 'Нужен телефон, чтобы подтвердить запись' : undefined;
+  const phoneError = touched && !isFullPhone(phone) ? (phone.trim() ? phoneHint(phone) : 'Нужен телефон, чтобы подтвердить запись') : undefined;
   const consentError = touched && !consent ? 'Без согласия студия не сможет принять запись' : undefined;
-  const canSubmit = Boolean(service && slot && name.trim().length >= 2 && isPhone(phone) && consent);
+  const canSubmit = Boolean(service && slot && name.trim().length >= 2 && isFullPhone(phone) && consent);
 
   // Кнопка неактивна, пока форма не заполнена, поэтому подсказываем, чего не хватает.
   const missing = !slot
     ? 'Выберите время'
     : name.trim().length < 2
       ? 'Укажите, как к вам обращаться'
-      : !isPhone(phone)
+      : !isFullPhone(phone)
         ? 'Укажите телефон'
         : !consent
           ? 'Отметьте согласие на обработку персональных данных'
@@ -291,11 +292,12 @@ export function BookingPage() {
               <TextInput
                 label="Телефон"
                 value={phone}
-                onChange={setPhone}
+                onChange={(v) => setPhone((prev) => nextPhoneValue(prev, v))}
                 type="text"
-                placeholder="+7 900 000-00-00"
-                description="Мы позвоним вам, чтобы подтвердить запись"
+                placeholder="+7 (900) 123-45-67"
+                description={phoneError ? undefined : phoneHint(phone)}
                 status={phoneError ? {type: 'error', message: phoneError} : undefined}
+                {...PHONE_INPUT_PROPS}
               />
               <TextInput
                 label="Автомобиль (необязательно)"
@@ -482,10 +484,6 @@ function plural(n: number, one: string, few: string, many: string): string {
   if (m10 === 1 && m100 !== 11) return one;
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
   return many;
-}
-
-function isPhone(v: string): boolean {
-  return v.replace(/\D/g, '').length >= 10;
 }
 
 function dayLabel(date: string, tz: string): string {

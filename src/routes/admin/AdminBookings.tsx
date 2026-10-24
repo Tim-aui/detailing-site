@@ -26,6 +26,7 @@ import {dayWindow, timeFromMinutes} from '../../lib/schedule.ts';
 import {money, studioDate, studioTime, duration} from '../../lib/format.ts';
 import {LoadingIndicator} from '../../components/LoadingIndicator.tsx';
 import {
+import {PHONE_INPUT_PROPS, isFullPhone, nextPhoneValue, phoneHint} from '../../lib/phone.ts';
   periodFor,
   shiftDate,
   todayIn,
@@ -410,7 +411,7 @@ function NewBookingDialog({settings, defaultDate, onClose}: {settings: StudioSet
   const [comment, setComment] = useState('');
   const requestId = useRef(crypto.randomUUID());
 
-  const valid = serviceId && options.includes(time) && name.trim().length >= 2 && phone.replace(/\D/g, '').length >= 10;
+  const valid = serviceId && options.includes(time) && name.trim().length >= 2 && isFullPhone(phone);
 
   const submit = async () => {
     try {
@@ -451,7 +452,7 @@ function NewBookingDialog({settings, defaultDate, onClose}: {settings: StudioSet
           <Banner status="warning" title="В этот день студия закрыта" />
         )}
         <TextInput label="Имя клиента" value={name} onChange={setName} />
-        <TextInput label="Телефон" value={phone} onChange={setPhone} placeholder="+7 900 000-00-00" />
+        <TextInput label="Телефон" value={phone} onChange={(v) => setPhone((prev) => nextPhoneValue(prev, v))} placeholder="+7 (900) 123-45-67" description={phoneHint(phone)} {...PHONE_INPUT_PROPS} />
         <TextInput label="Машина" value={car} onChange={setCar} />
         <TextArea label="Комментарий" value={comment} onChange={setComment} size="sm" />
         <Text type="supporting" color="secondary">

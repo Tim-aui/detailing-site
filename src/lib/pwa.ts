@@ -1,13 +1,24 @@
 import {useEffect} from 'react';
+import {useLocation} from 'react-router-dom';
 
 let done = false;
+/** Новая версия сайта уже управляет вкладкой, а в памяти ещё старый код. */
+let updated = false;
 
 /**
- * Регистрация сервис-воркера.
+ * Регистрация сервис-воркера и обновление сайта.
  *
- * Плагин отдаёт код воркера, но регистрирует его вручную: так мы
- * решаем, когда именно предложить установку, и не мешаем первой
- * отрисовке страницы.
+ * Раньше новая версия ждала, пока закроют все вкладки сайта (а на телефоне
+ * PWA почти никогда не закрывают), и событие «доступно обновление» никто не
+ * слушал — люди неделями видели старую версию. Теперь воркер новой версии
+ * включается сразу (skipWaiting + clientsClaim в vite.config.ts), а вкладка
+ * перезагружается при первом удобном случае:
+ *   • при следующем переходе внутри сайта (useReloadOnUpdate);
+ *   • сразу, если вкладка в фоне.
+ * Не посреди заполнения формы — введённое не пропадёт.
+ *
+ * Перезагрузка обязательна: старый код в памяти при переходе запросил бы
+ * старые файлы, которых на сайте уже нет.
  */
 export function registerPwa() {
   if (done || typeof window === 'undefined') return;
@@ -15,19 +26,23 @@ export function registerPwa() {
   if (!('serviceWorker' in navigator)) return;
   if (import.meta.env.DEV) return;
 
+  // Был ли воркер до нас: при первой установке перезагружать нечего.
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || updated) return;
+    updated = true;
+    if (document.visibilityState === 'hidden') window.location.reload();
+  });
+
   const register = () => {
     navigator.serviceWorker
       .register('/sw.js', {scope: '/'})
       .then((reg) => {
-        reg.addEventListener('updatefound', () => {
-          const sw = reg.installing;
-          sw?.addEventListener('statechange', () => {
-            // Новый воркер готов и ждёт — перезагружаем, чтобы человек
-            // не остался на старой версии приложения.
-            if (sw.state === 'installed' && navigator.serviceWorker.controller) {
-              window.dispatchEvent(new CustomEvent('app:update-ready'));
-            }
-          });
+        // Открытую надолго вкладку (PWA на телефоне) проверяем на обновления
+        // при каждом возвращении к ней.
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') reg.update().catch(() => {});
+          else if (updated) window.location.reload();
         });
       })
       .catch(() => {
@@ -39,10 +54,10 @@ export function registerPwa() {
   else window.addEventListener('load', register, {once: true});
 }
 
-/** Событие «доступно обновление» для показа кнопки. */
-export function onUpdateReady(handler: () => void) {
+/** Перезагружает страницу при переходе, если вышла новая версия сайта. */
+export function useReloadOnUpdate() {
+  const {pathname} = useLocation();
   useEffect(() => {
-    window.addEventListener('app:update-ready', handler);
-    return () => window.removeEventListener('app:update-ready', handler);
-  }, [handler]);
+    if (updated) window.location.reload();
+  }, [pathname]);
 }
